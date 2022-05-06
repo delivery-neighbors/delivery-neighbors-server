@@ -1,3 +1,9 @@
-from django.shortcuts import render
+from rest_framework.generics import *
 
-# Create your views here.
+from deliveryNeighbors.models import *
+from deliveryNeighbors.serializers import *
+
+
+class UserCreateAPIView(CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserCreateSerializer
