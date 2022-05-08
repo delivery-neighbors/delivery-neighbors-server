@@ -1,0 +1,28 @@
+version: "3.8"
+services:
+  db:
+    image: mariadb:latest
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_USER: "dnuser"
+      MYSQL_PASSWORD: "dnpass"
+      MYSQL_ROOT_PASSWORD: "dnpass"
+      MYSQL_DATABASE: "deliveryNeighbors"
+#    volumes:
+#      - ./db:/var/lib/mariadb
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bash -c "sleep 5s && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - TZ=Asia/Seoul
+
