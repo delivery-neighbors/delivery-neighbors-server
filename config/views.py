@@ -1,7 +1,10 @@
 import requests
+from allauth.socialaccount.models import SocialAccount
+from django.http import JsonResponse
 from django.shortcuts import redirect
 
 from config.settings import SOCIAL_OAUTH_CONFIG
+from deliveryNeighbors.models import User
 
 KAKAO_CLIENT_ID = SOCIAL_OAUTH_CONFIG['KAKAO_REST_API_KEY']
 KAKAO_REDIRECT_URI = SOCIAL_OAUTH_CONFIG['KAKAO_REDIRECT_URI']
@@ -33,7 +36,7 @@ def kakao_callback(request):
 
     token_response = requests.post(token_api, data=data, headers=headers)
     token_json = token_response.json()
-    print(f"Access Token Request: {token_response}")  # <Response [200]>
+    print(f"엑세스 토큰 가져오기 성공: {token_json}")  # <Response [200]>
     access_token = token_json['access_token']
 
     # Email Request
@@ -45,4 +48,18 @@ def kakao_callback(request):
 
     kakao_account = profile_json['kakao_account']
     email = kakao_account['email']
-    
+
+    # Signin, Sighup Request
+    if not User.objects.filter(email=email).exists():
+        # 유저 정보가 없으면 회원가입 되도록 합니다.
+        user = User.objects.create(
+            nickname=kakao_account['profile']['nickname'],
+            email=email,
+            pwd="kakao_default",
+            profile_img=kakao_account['profile']['profile_image_url'],
+        )
+
+    print(f"user created: {email}")
+
+    return JsonResponse({'access_token': access_token}, status=201)
+
