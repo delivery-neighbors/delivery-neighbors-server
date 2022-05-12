@@ -42,7 +42,7 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -54,6 +54,22 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'deliveryNeighbors',
+
+    # django-rest-auth
+    'rest_framework',
+    'rest_framework.authtoken',
+    'rest_auth',
+
+    # django-allauth
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'rest_auth.registration',
+
+    # provider
+    'allauth.socialaccount.providers.kakao',
+
 ]
 
 MIDDLEWARE = [
@@ -66,7 +82,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'deliveryNeighbors.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
     {
@@ -139,3 +155,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SOCIAL_OAUTH_CONFIG = {
+    'KAKAO_REST_API_KEY': get_secret('KAKAO_REST_API_KEY'),
+    "KAKAO_REDIRECT_URI": get_secret('KAKAO_REDIRECT_URI'),
+    "KAKAO_SECRET_KEY": get_secret('KAKAO_SECRET_KEY')
+}
