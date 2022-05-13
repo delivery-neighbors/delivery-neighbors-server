@@ -73,6 +73,9 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.kakao',
 
+    # api 문서 자동화
+    'drf_yasg',
+
 ]
 
 MIDDLEWARE = [
