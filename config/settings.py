@@ -42,6 +42,8 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+SITE_ID = 1
+
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -53,21 +55,22 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'deliveryNeighbors',
 
-    # django-rest-auth
+    # django-rest-framework
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
 
+    # dj-rest-auth
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
+
     # django-allauth
-    'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'rest_auth.registration',
-
-    # provider
     'allauth.socialaccount.providers.kakao',
 
 ]
@@ -107,13 +110,17 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'deliveryNeighbors',
+    #     'USER': 'dnuser',
+    #     'PASSWORD': 'dnpass',
+    #     'HOST': 'db',
+    #     'PORT': 3306,
+    # }
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'deliveryNeighbors',
-        'USER': 'dnuser',
-        'PASSWORD': 'dnpass',
-        'HOST': 'db',
-        'PORT': 3306,
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -155,6 +162,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# media
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
 
 SOCIAL_OAUTH_CONFIG = {
     'KAKAO_REST_API_KEY': get_secret('KAKAO_REST_API_KEY'),

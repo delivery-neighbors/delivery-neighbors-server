@@ -1,10 +1,16 @@
 import requests
 from allauth.socialaccount.models import SocialAccount
+from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from dj_rest_auth.registration.views import SocialLoginView
 from django.http import JsonResponse
 from django.shortcuts import redirect
+from rest_framework import status
 
 from config.settings import SOCIAL_OAUTH_CONFIG
 from deliveryNeighbors.models import User
+
+BASE_URL = "http://localhost:8070/"
 
 KAKAO_CLIENT_ID = SOCIAL_OAUTH_CONFIG['KAKAO_REST_API_KEY']
 KAKAO_REDIRECT_URI = SOCIAL_OAUTH_CONFIG['KAKAO_REDIRECT_URI']
@@ -18,8 +24,10 @@ def kakao_login(request):
     return redirect(url)
 
 
+# kakao Signin or Signup
 def kakao_callback(request):
     code = request.GET.get('code')  # 토큰 받기 요청에 필요한 인가 코드
+    print(f"인가 코드: {code}")
 
     # Access Token Request
     token_api = "https://kauth.kakao.com/oauth/token"  # 토큰 받기 api
@@ -36,7 +44,7 @@ def kakao_callback(request):
 
     token_response = requests.post(token_api, data=data, headers=headers)
     token_json = token_response.json()
-    print(f"엑세스 토큰 가져오기 성공: {token_json}")  # <Response [200]>
+    print(f"엑세스 토큰 가져오기 성공: {token_response}")  # <Response [200]>
     access_token = token_json['access_token']
 
     # Email Request
@@ -47,19 +55,76 @@ def kakao_callback(request):
     profile_json = profile_request.json()
 
     kakao_account = profile_json['kakao_account']
+
     email = kakao_account['email']
+    uid = profile_json['id']
 
     # Signin, Sighup Request
+    '''
+    # kakao 유저를 User에 저장할 경우
     if not User.objects.filter(email=email).exists():
-        # 유저 정보가 없으면 회원가입 되도록 합니다.
+        # 유저 정보가 없으면 회원가입
         user = User.objects.create(
             nickname=kakao_account['profile']['nickname'],
             email=email,
-            pwd="kakao_default",
-            profile_img=kakao_account['profile']['profile_image_url'],
+            pwd=kakao_account['profile']['profile_image_url'],
+            profile_img=kakao_account['profile']['profile_image_url']
         )
 
     print(f"user created: {email}")
+    '''
 
-    return JsonResponse({'access_token': access_token}, status=201)
+    try:
+        # 로그인
+        # user = User.objects.get(email=email)
+        social_user = SocialAccount.objects.get(uid=uid)
+        if not social_user:  # 소셜 로그인이 아닐 경우
+            return JsonResponse(
+                {"error_message": "email exists but not social user"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if social_user.provider != "kakao":  # kakao 소셜 로그인이 아닌 경우
+            return JsonResponse(
+                {"error_message": "no matching social type"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
+        # kakao 유저 로그인
+        data = {'access_token': access_token, 'code': code}
+        accept = requests.post(
+            f"{BASE_URL}accounts/kakao/login/finish/", data=data)
+        accept_status = accept.status_code
+        if accept_status != 200:
+            return JsonResponse(
+                {"error_message": "failed to signin"}, status=accept_status
+            )
+        accept_json = accept.json()
+        accept_json.pop("user", None)
+        print("kakao 로그인 성공!")
+        return JsonResponse(accept_json)
+
+    except User.DoesNotExist:
+        # 기존에 가입한 유저가 아니면 회원 가입
+        data = {'access_token': access_token, 'code': code}
+        accept = requests.post(
+            f"{BASE_URL}accounts/kakao/login/finish/", data=data
+        )
+        accept_status = accept.status_code
+        if accept_status != 200:
+            return JsonResponse(
+                {"error_message": f"failed to signup, {accept_status}"}, status=accept_status
+            )
+        accept_json = accept.json()
+        accept_json.pop("user", None)
+        print("kakao 회원 가입")
+        return JsonResponse(accept_json)
+
+
+class KakaoLogin(SocialLoginView):
+    adapter_class = KakaoOAuth2Adapter
+    client_class = OAuth2Client
+    callback_url = KAKAO_REDIRECT_URI
+
+
+def kakao_logout(request):
+    return JsonResponse(status=status.HTTP_200_OK);
