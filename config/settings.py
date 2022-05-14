@@ -42,8 +42,6 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-SITE_ID = 1
-
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -56,6 +54,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+
+    # my app
     'deliveryNeighbors',
 
     # django-rest-framework
@@ -77,6 +77,14 @@ INSTALLED_APPS = [
     'drf_yasg',
 
 ]
+
+SITE_ID = 1
+
+AUTH_USER_MODEL = 'deliveryNeighbors.User'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
