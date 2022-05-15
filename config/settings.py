@@ -81,10 +81,12 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 AUTH_USER_MODEL = 'deliveryNeighbors.User'
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
+
+# ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # username 필드 사용 x
+# ACCOUNT_USERNAME_REQUIRED = False         # username 필드 사용 x
+ACCOUNT_EMAIL_REQUIRED = True             # email 필드 사용 o
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -183,3 +185,18 @@ SOCIAL_OAUTH_CONFIG = {
     "KAKAO_REDIRECT_URI": get_secret('KAKAO_REDIRECT_URI'),
     "KAKAO_SECRET_KEY": get_secret('KAKAO_SECRET_KEY')
 }
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
+
+# django-allauth 유저 인증 로직
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
