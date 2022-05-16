@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
@@ -47,9 +48,20 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 # Application definition
 
 INSTALLED_APPS = [
+    # app
     'deliveryNeighbors',
 
+    # django package
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'rest_framework.authtoken',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+
+    # django-allauth
+    'allauth',
+    'allauth.account',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -93,19 +105,28 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# DATABASES = {
+# #     'default': {
+# #         'ENGINE': 'django.db.backends.mysql',
+# #         'NAME': 'deliveryNeighbors',
+# #         'USER': 'dnuser',
+# #         'PASSWORD': 'dnpass',
+# #         'HOST': 'db',
+# #         'PORT': 3306,
+# #     }
+# # }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'deliveryNeighbors',
-        'USER': 'dnuser',
-        'PASSWORD': 'dnpass',
-        'HOST': 'db',
-        'PORT': 3306,
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
+
+AUTH_USER_MODEL = 'deliveryNeighbors.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -146,3 +167,42 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 MEDIA_URL = '/media/'
+
+REST_FRAMEWORK = {
+    # Serializer default permission class definition ; view permission class 정의 x 시 참조
+    "DEFAULT_PERMISSION_CLASSES": [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    # 인증 방식 정의
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+# ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+# ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_UNIQUE_EMAIL = True
+# ACCOUNT_USERNAME_REQUIRED = False
+# ACCOUNT_AUTHENTICATION_METHOD = 'email'
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+# ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/?verification=1'
+# ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/?verification=1'
+
+# django 내장 메일 전송 기능
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+REST_USE_JWT = True
+
+JWT_SECRET_KEY = get_secret("JWT_SECRET_KEY")
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=3),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': JWT_SECRET_KEY,
+}
