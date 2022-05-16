@@ -190,7 +190,13 @@ REST_FRAMEWORK = {
 # ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/?verification=1'
 
 # django 내장 메일 전송 기능
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "smtp.naver.com"
+EMAIL_HOST_USER = 'uts4179@naver.com'
+EMAIL_HOST_PASSWORD = 'uts4092123.'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 REST_USE_JWT = True
 

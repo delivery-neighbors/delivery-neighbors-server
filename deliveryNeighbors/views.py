@@ -1,11 +1,8 @@
 import random
 
 from django.contrib.auth.hashers import make_password
-from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage
+from django.core.mail import send_mail
 from django.http import JsonResponse
-from django.shortcuts import redirect
-from django.utils.http import urlsafe_base64_encode
 from django.views import View
 from rest_framework import status
 from rest_framework.generics import *
@@ -25,6 +22,7 @@ class UserCreateAPIView(CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
+        print("request data-",request.data)
 
         if request.data['profile_img']:
             user_data = {
@@ -68,8 +66,7 @@ class EmailSendView(GenericAPIView):
 
         mail_title = "회원가입을 위해 이메일을 인증하세요"
         mail_to = request.data['email']
-        email = EmailMessage(mail_title, message, to=[mail_to])
-        email.send()
+        send_mail(mail_title, message, None, [mail_to], fail_silently=False)
 
         return JsonResponse({"message": "EMAIL SEND SUCCESS", "random_num": random_num})
 
@@ -77,6 +74,7 @@ class EmailSendView(GenericAPIView):
 class EmailVerifyView(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = EmailVerifySerializer
+    print(authenticate_num_dict)
 
     def post(self, request):
         if request.data['email'] in authenticate_num_dict and authenticate_num_dict[request.data['email']] == request.data['random_num']:
@@ -101,4 +99,4 @@ class EmailVerifyView(GenericAPIView):
 #         return Response(response)
 
 
-# "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjUyNjQ1MDI2LCJpYXQiOjE2NTI2MzQyMjYsImp0aSI6Ijg5NjQ0NDY4MTFmMzQyMDlhYzJiMTdiZmIyNzY4MzMyIiwidXNlcl9pZCI6M30.NrS3CQTpSoM3qUzI5WSfexo4A6cLoMEbQnaI3QHlluU"
+# test3 token "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjUyNjQ1MDI2LCJpYXQiOjE2NTI2MzQyMjYsImp0aSI6Ijg5NjQ0NDY4MTFmMzQyMDlhYzJiMTdiZmIyNzY4MzMyIiwidXNlcl9pZCI6M30.NrS3CQTpSoM3qUzI5WSfexo4A6cLoMEbQnaI3QHlluU"
