@@ -2,14 +2,19 @@ import requests
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from dj_rest_auth.registration.views import SocialLoginView
+from dj_rest_auth.registration.serializers import SocialConnectSerializer
+from dj_rest_auth.registration.views import SocialLoginView, SocialAccountDisconnectView
+from django.core.mail.backends import console
 
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from rest_framework import status
+from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import IsAuthenticated
 
 from config.settings import SOCIAL_OAUTH_CONFIG
 from deliveryNeighbors.models import User
+from deliveryNeighbors.serializers import UserSerializer
 
 BASE_URL = "http://localhost:8070/"
 
@@ -48,6 +53,11 @@ def kakao_callback(request):
     access_token = token_json['access_token']
     print(f"엑세스 토큰 가져오기 성공: {access_token}")
 
+    # session 저장
+    request.session['access_token'] = access_token
+    request.session['client_id'] = KAKAO_CLIENT_ID
+    request.session['redirect_uri'] = KAKAO_REDIRECT_URI
+
     # Email Request
     profile_request = requests.get(
         "https://kapi.kakao.com/v2/user/me",
@@ -65,7 +75,7 @@ def kakao_callback(request):
         # 로그인
         user = User.objects.get(email=email)
         social_user = SocialAccount.objects.get(user=user)
-        if not social_user:  # 소셜 로그인이 아닐 경우
+        if not social_user:  # 소셜 로그인이 아닐 경우 (자체로그인)
             return JsonResponse(
                 {"error_message": "email exists but not social user"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -114,12 +124,12 @@ class KakaoLogin(SocialLoginView):
 
 
 def kakao_logout(request):
-    print("로그아웃")
-    logout_kakao_uri = "https://kapi.kakao.com/v1/user/logout"
-    access_token = request.session.get('access_token')
-    print(access_token)
-    headers = {"Authorization": f"Bearer {access_token}"}
-    accept = requests.post(logout_kakao_uri, headers=headers)
+    access_token = request.session['access_token']
+    accept = requests.post(
+        "https://kapi.kakao.com/v1/user/logout",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
     # 로그아웃 에러 예외 처리 status_code
     accept_status = accept.status_code
     if accept_status != 200:
