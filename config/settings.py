@@ -43,7 +43,7 @@ SECRET_KEY = get_secret("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -51,24 +51,33 @@ INSTALLED_APPS = [
     # app
     'deliveryNeighbors',
 
-    # django package
-    'rest_framework',
+    # jwt
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
+  
+    'django.contrib.admin',
+    'django.contrib.sites',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    # django-rest-auth
+    'rest_framework',
     'rest_framework.authtoken',
+    'rest_auth',
     'dj_rest_auth',
     'dj_rest_auth.registration',
 
     # django-allauth
     'allauth',
     'allauth.account',
+    'allauth.socialaccount',
+    'rest_auth.registration',
 
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    # provider
+    'allauth.socialaccount.providers.kakao',
 ]
 
 MIDDLEWARE = [
@@ -179,16 +188,6 @@ REST_FRAMEWORK = {
     ),
 }
 
-# ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-# ACCOUNT_EMAIL_REQUIRED = True
-# ACCOUNT_UNIQUE_EMAIL = True
-# ACCOUNT_USERNAME_REQUIRED = False
-# ACCOUNT_AUTHENTICATION_METHOD = 'email'
-# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-# ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-# ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL = '/?verification=1'
-# ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL = '/?verification=1'
-
 # django 내장 메일 전송 기능
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.naver.com"
@@ -211,4 +210,10 @@ SIMPLE_JWT = {
 
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': JWT_SECRET_KEY,
+}
+
+SOCIAL_OAUTH_CONFIG = {
+    'KAKAO_REST_API_KEY': get_secret('KAKAO_REST_API_KEY'),
+    "KAKAO_REDIRECT_URI": get_secret('KAKAO_REDIRECT_URI'),
+    "KAKAO_SECRET_KEY": get_secret('KAKAO_SECRET_KEY')
 }

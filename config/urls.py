@@ -15,8 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from config import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('v1/', include('deliveryNeighbors.urls')),
+    path('accounts/kakao/login/', views.kakao_login),
+    path('accounts/kakao/callback/', views.kakao_callback),
 ]

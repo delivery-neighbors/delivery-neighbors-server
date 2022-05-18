@@ -11,8 +11,9 @@ services:
       MYSQL_PASSWORD: "dnpass"
       MYSQL_ROOT_PASSWORD: "dnpass"
       MYSQL_DATABASE: "deliveryNeighbors"
-#    volumes:
-#      - ./db:/var/lib/mariadb
+    restart: always
+    volumes:
+      - ./db:/var/lib/mariadb
 
   web:
     build:
@@ -20,7 +21,8 @@ services:
       dockerfile: Dockerfile
     command: bash -c "sleep 5s && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     ports:
-      - "8000:8000"
+      - "8070:8000"
+    restart: always
     depends_on:
       - db
     environment:
