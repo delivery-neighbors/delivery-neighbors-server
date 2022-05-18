@@ -17,3 +17,9 @@ class EmailSendSerializer(serializers.ModelSerializer):
 class EmailVerifySerializer(serializers.Serializer):
     email = serializers.EmailField
     random_num = serializers.IntegerField
+
+
+class UserLoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['email', 'password']

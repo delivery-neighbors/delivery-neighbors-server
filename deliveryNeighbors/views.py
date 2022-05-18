@@ -1,6 +1,6 @@
 import random
 
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.views import View
@@ -22,7 +22,7 @@ class UserCreateAPIView(CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
-        print("request data-",request.data)
+        print("request data-", request.data)
 
         if request.data['profile_img']:
             user_data = {
@@ -77,26 +77,39 @@ class EmailVerifyView(GenericAPIView):
     print(authenticate_num_dict)
 
     def post(self, request):
-        if request.data['email'] in authenticate_num_dict and authenticate_num_dict[request.data['email']] == request.data['random_num']:
+        if request.data['email'] in authenticate_num_dict and authenticate_num_dict[request.data['email']] == \
+                request.data['random_num']:
             authenticate_num_dict.pop(request.data['email'])
             return Response({"message": "EMAIL VERIFY SUCCESS", "email": request.data['email']})
         else:
             return Response({"message": "EMAIL VERIFY FAIL"})
 
-# class UserLoginAPIView(GenericAPIView):
-#     # serializer_class = UserLoginSerializer
-#
-#     def post(self, request):
-#         serializer = self.serializer_class(data=request.data)
-#         if serializer.is_valid(raise_exception=True):
-#             response = {
-#                 "success": "True",
-#                 "status_code": status.HTTP_200_OK,
-#                 "message": "user login success",
-#                 "token": serializer.data['token']
-#             }
-#
-#         return Response(response)
 
+class UserLoginAPIView(GenericAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = UserLoginSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class
+
+        request_email = request.data['email']
+        request_password = request.data['password']
+
+        user = User.objects.filter(email=request_email)
+
+        if user:
+            user_password = user[0].password
+            if check_password(request_password, user_password):
+                token = RefreshToken.for_user(user[0])
+                refresh = str(token)
+                access = str(token.access_token)
+
+                return JsonResponse(
+                    {"message": "USER LOGIN SUCCESS", 'user': user[0].pk, 'refresh': refresh, 'access': access})
+            else:
+                return Response("WRONG PASSWORD")
+        else:
+            return Response("USER NOT FOUND FOR THIS EMAIL")
 
 # test3 token "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjUyNjQ1MDI2LCJpYXQiOjE2NTI2MzQyMjYsImp0aSI6Ijg5NjQ0NDY4MTFmMzQyMDlhYzJiMTdiZmIyNzY4MzMyIiwidXNlcl9pZCI6M30.NrS3CQTpSoM3qUzI5WSfexo4A6cLoMEbQnaI3QHlluU"
+# user1 token "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjUyODU4MTkwLCJpYXQiOjE2NTI4NDczOTAsImp0aSI6IjQ3NWViYjU4NDU0YjRhZWJiZGUxMGVmZTcwYmRjMTFlIiwidXNlcl9pZCI6MX0.j5POxJSYGENj9VtBUJUC4602r1eqfF9EE-sxNrViSk0"
