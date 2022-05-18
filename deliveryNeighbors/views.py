@@ -1,5 +1,5 @@
 import random
-
+from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.mail import send_mail
 from django.http import JsonResponse
@@ -9,9 +9,11 @@ from rest_framework.generics import *
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.utils.translation import gettext_lazy
 
 from deliveryNeighbors.serializers import *
 from rest_framework.response import Response
+from rest_framework_simplejwt.exceptions import TokenError
 
 authenticate_num_dict = {}
 
@@ -22,7 +24,6 @@ class UserCreateAPIView(CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data)
-        print("request data-", request.data)
 
         if request.data['profile_img']:
             user_data = {
@@ -74,7 +75,6 @@ class EmailSendView(GenericAPIView):
 class EmailVerifyView(GenericAPIView):
     permission_classes = [AllowAny]
     serializer_class = EmailVerifySerializer
-    print(authenticate_num_dict)
 
     def post(self, request):
         if request.data['email'] in authenticate_num_dict and authenticate_num_dict[request.data['email']] == \
@@ -111,5 +111,33 @@ class UserLoginAPIView(GenericAPIView):
         else:
             return Response("USER NOT FOUND FOR THIS EMAIL")
 
-# test3 token "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjUyNjQ1MDI2LCJpYXQiOjE2NTI2MzQyMjYsImp0aSI6Ijg5NjQ0NDY4MTFmMzQyMDlhYzJiMTdiZmIyNzY4MzMyIiwidXNlcl9pZCI6M30.NrS3CQTpSoM3qUzI5WSfexo4A6cLoMEbQnaI3QHlluU"
-# user1 token "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjUyODU4MTkwLCJpYXQiOjE2NTI4NDczOTAsImp0aSI6IjQ3NWViYjU4NDU0YjRhZWJiZGUxMGVmZTcwYmRjMTFlIiwidXNlcl9pZCI6MX0.j5POxJSYGENj9VtBUJUC4602r1eqfF9EE-sxNrViSk0"
+
+class UserLogoutAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        response = Response(
+            {'message': "Successfully logged out"},
+            status=status.HTTP_200_OK,
+        )
+
+        if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
+            try:
+                token = RefreshToken(request.data['refresh'])
+                token.blacklist()
+
+            except KeyError:
+                response.data = {'message': "Refresh token was not included in request data"}
+                response.status_code = status.HTTP_401_UNAUTHORIZED
+            except (TokenError, AttributeError, TypeError) as error:
+                if hasattr(error, 'args'):
+                    if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
+                        response.data = {'message': gettext_lazy(error.args[0])}
+                        response.status_code = status.HTTP_401_UNAUTHORIZED
+                    else:
+                        response.data = {'message': "An error has occurred"}
+                        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                else:
+                    response.data = {'message': "An error has occurred"}
+                    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return response

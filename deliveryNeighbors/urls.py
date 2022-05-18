@@ -9,4 +9,5 @@ urlpatterns = [
                   path('deliveryneighbors/emailverify/', views.EmailVerifyView.as_view(), name='email-verify'),
                   path('deliveryneighbors/signup/', views.UserCreateAPIView.as_view(), name='user-create'),
                   path('deliveryneighbors/signin/', views.UserLoginAPIView.as_view(), name='user-login'),
+                  path('deliveryneighbors/signout/', views.UserLogoutAPIView.as_view(), name='user-logout'),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
