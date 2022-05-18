@@ -46,7 +46,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=False,
         unique=True
     )
-    profile_img = models.ImageField(upload_to="images/%Y/%m/%d/")
+    avatar = models.ImageField(upload_to="images/avatar/%Y/%m/%d/")
 
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)

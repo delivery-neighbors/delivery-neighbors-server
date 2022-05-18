@@ -4,6 +4,7 @@ from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
 from django.contrib.auth import login
+from django.core.files.base import ContentFile
 
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -26,7 +27,7 @@ def kakao_login(request):
     return redirect(url)
 
 
-# kakao Signin or Signup
+# kakao Login or Signup
 def kakao_callback(request):
     code = request.GET.get('code')  # 토큰 받기 요청에 필요한 인가 코드
     print(f"인가 코드: {code}")
@@ -61,6 +62,7 @@ def kakao_callback(request):
     )
     profile_json = profile_request.json()
     kakao_account = profile_json['kakao_account']
+    kakao_profile = kakao_account['profile']
     email = kakao_account['email']
 
     # Login, Sighup Request
@@ -102,6 +104,16 @@ def kakao_callback(request):
         accept = requests.post(
             f"{BASE_URL}accounts/kakao/login/finish/", data=data
         )
+        # 프로필 사진 설정
+        user = User.objects.get(email=email)
+        avatar_url = kakao_profile['profile_image_url']
+        if avatar_url is not None:
+            avatar_request = requests.get(avatar_url)
+            user.avatar.save(
+                f"{kakao_profile['nickname']}-avatar.png", ContentFile(avatar_request.content)
+            )
+        user.save()
+
         accept_status = accept.status_code
         if accept_status != 200:
             return JsonResponse(
