@@ -2,19 +2,15 @@ import requests
 from allauth.socialaccount.models import SocialAccount
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
-from dj_rest_auth.registration.serializers import SocialConnectSerializer
-from dj_rest_auth.registration.views import SocialLoginView, SocialAccountDisconnectView
-from django.core.mail.backends import console
+from dj_rest_auth.registration.views import SocialLoginView
+from django.contrib.auth import login
 
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from rest_framework import status
-from rest_framework.generics import CreateAPIView
-from rest_framework.permissions import IsAuthenticated
 
 from config.settings import SOCIAL_OAUTH_CONFIG
 from deliveryNeighbors.models import User
-from deliveryNeighbors.serializers import UserSerializer
 
 BASE_URL = "http://localhost:8070/"
 
@@ -64,11 +60,8 @@ def kakao_callback(request):
         headers={"Authorization": f"Bearer {access_token}"}
     )
     profile_json = profile_request.json()
-
     kakao_account = profile_json['kakao_account']
-
     email = kakao_account['email']
-    uid = profile_json['id']
 
     # Login, Sighup Request
     try:
@@ -97,7 +90,10 @@ def kakao_callback(request):
             )
         accept_json = accept.json()
         accept_json.pop("user", None)
+
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         print("kakao 로그인 성공!")
+
         return JsonResponse(accept_json)
 
     except User.DoesNotExist:
@@ -113,7 +109,11 @@ def kakao_callback(request):
             )
         accept_json = accept.json()
         accept_json.pop("user", None)
-        print("kakao 회원 가입")
+
+        user = User.objects.get(email=email)
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        print("kakao 회원 가입 성공!")
+
         return JsonResponse(accept_json)
 
 
@@ -124,6 +124,9 @@ class KakaoLogin(SocialLoginView):
 
 
 def kakao_logout(request):
+    if request.user.is_authenticated:
+        print(f"현재 로그 아웃할 유저: {request.user.username}")
+
     access_token = request.session['access_token']
     accept = requests.post(
         "https://kapi.kakao.com/v1/user/logout",
