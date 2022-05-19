@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
@@ -47,7 +48,15 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # app
+    'deliveryNeighbors',
+
+    # jwt
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+  
     'django.contrib.admin',
+    'django.contrib.sites',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -55,13 +64,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
-    # my app
-    'deliveryNeighbors',
 
     # django-rest-framework
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
 
     # dj-rest-auth
     "dj_rest_auth",
@@ -72,10 +81,9 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.kakao',
-
+  
     # api 문서 자동화
     'drf_yasg',
-
 ]
 
 SITE_ID = 1
@@ -140,6 +148,8 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
+AUTH_USER_MODEL = 'deliveryNeighbors.User'
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -180,17 +190,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-SOCIAL_OAUTH_CONFIG = {
-    'KAKAO_REST_API_KEY': get_secret('KAKAO_REST_API_KEY'),
-    "KAKAO_REDIRECT_URI": get_secret('KAKAO_REDIRECT_URI'),
-    "KAKAO_SECRET_KEY": get_secret('KAKAO_SECRET_KEY')
-}
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    # Serializer default permission class definition ; view permission class 정의 x 시 참조
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
@@ -204,3 +210,33 @@ AUTHENTICATION_BACKENDS = [
     # `allauth` specific authentication methods, such as login by e-mail
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
+
+# django 내장 메일 전송 기능
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "smtp.naver.com"
+EMAIL_HOST_USER = 'uts4179@naver.com'
+EMAIL_HOST_PASSWORD = 'uts4092123.'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+REST_USE_JWT = True
+
+JWT_SECRET_KEY = get_secret("JWT_SECRET_KEY")
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=3),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': JWT_SECRET_KEY,
+}
+
+SOCIAL_OAUTH_CONFIG = {
+    'KAKAO_REST_API_KEY': get_secret('KAKAO_REST_API_KEY'),
+    "KAKAO_REDIRECT_URI": get_secret('KAKAO_REDIRECT_URI'),
+    "KAKAO_SECRET_KEY": get_secret('KAKAO_SECRET_KEY')
+}
