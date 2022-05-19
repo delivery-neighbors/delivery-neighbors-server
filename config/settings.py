@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
@@ -47,21 +48,29 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # app
+    'deliveryNeighbors',
+
+    # jwt
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+  
     'django.contrib.admin',
+    'django.contrib.sites',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'deliveryNeighbors',
 
     # django-rest-auth
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
 
     # django-allauth
-    'django.contrib.sites',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -69,7 +78,6 @@ INSTALLED_APPS = [
 
     # provider
     'allauth.socialaccount.providers.kakao',
-
 ]
 
 MIDDLEWARE = [
@@ -106,19 +114,28 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+# DATABASES = {
+# #     'default': {
+# #         'ENGINE': 'django.db.backends.mysql',
+# #         'NAME': 'deliveryNeighbors',
+# #         'USER': 'dnuser',
+# #         'PASSWORD': 'dnpass',
+# #         'HOST': 'db',
+# #         'PORT': 3306,
+# #     }
+# # }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'deliveryNeighbors',
-        'USER': 'dnuser',
-        'PASSWORD': 'dnpass',
-        'HOST': 'db',
-        'PORT': 3306,
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
+
+AUTH_USER_MODEL = 'deliveryNeighbors.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -155,6 +172,45 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+MEDIA_URL = '/media/'
+
+REST_FRAMEWORK = {
+    # Serializer default permission class definition ; view permission class 정의 x 시 참조
+    "DEFAULT_PERMISSION_CLASSES": [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    # 인증 방식 정의
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+# django 내장 메일 전송 기능
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = "smtp.naver.com"
+EMAIL_HOST_USER = 'uts4179@naver.com'
+EMAIL_HOST_PASSWORD = 'uts4092123.'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+REST_USE_JWT = True
+
+JWT_SECRET_KEY = get_secret("JWT_SECRET_KEY")
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=3),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': JWT_SECRET_KEY,
+}
 
 SOCIAL_OAUTH_CONFIG = {
     'KAKAO_REST_API_KEY': get_secret('KAKAO_REST_API_KEY'),

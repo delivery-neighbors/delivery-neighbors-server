@@ -1,10 +1,9 @@
 from django.contrib import admin
-
-from deliveryNeighbors.models import User
+from .models import User
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'nickname', 'email', 'created_at']
-
+    list_display = ['username', 'email', 'profile_img']
+    fields = ['username', 'email', 'profile_img']
 
 admin.site.register(User, UserAdmin)
