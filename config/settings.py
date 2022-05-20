@@ -62,23 +62,39 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
-    # django-rest-auth
+
+    # django-rest-framework
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
     'dj_rest_auth',
     'dj_rest_auth.registration',
 
+    # dj-rest-auth
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
+
     # django-allauth
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'rest_auth.registration',
-
-    # provider
     'allauth.socialaccount.providers.kakao',
+  
+    # api 문서 자동화
+    'drf_yasg',
 ]
+
+SITE_ID = 1
+
+AUTH_USER_MODEL = 'deliveryNeighbors.User'
+
+# ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # username 필드 사용 x
+# ACCOUNT_USERNAME_REQUIRED = False         # username 필드 사용 x
+ACCOUNT_EMAIL_REQUIRED = True             # email 필드 사용 o
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -114,21 +130,18 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-# DATABASES = {
-# #     'default': {
-# #         'ENGINE': 'django.db.backends.mysql',
-# #         'NAME': 'deliveryNeighbors',
-# #         'USER': 'dnuser',
-# #         'PASSWORD': 'dnpass',
-# #         'HOST': 'db',
-# #         'PORT': 3306,
-# #     }
-# # }
-
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.mysql',
+    #     'NAME': 'deliveryNeighbors',
+    #     'USER': 'dnuser',
+    #     'PASSWORD': 'dnpass',
+    #     'HOST': 'db',
+    #     'PORT': 3306,
+    # }
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -173,20 +186,30 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# media
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 MEDIA_URL = '/media/'
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
     # Serializer default permission class definition ; view permission class 정의 x 시 참조
-    "DEFAULT_PERMISSION_CLASSES": [
+    'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    # 인증 방식 정의
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
 }
+
+# django-allauth 유저 인증 로직
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 
 # django 내장 메일 전송 기능
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
