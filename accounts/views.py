@@ -38,8 +38,6 @@ class UserCreateAPIView(CreateAPIView):
     serializer_class = UserCreateSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-
         if request.data['avatar']:
             user_data = {
                 'username': request.data['username'],
@@ -53,6 +51,8 @@ class UserCreateAPIView(CreateAPIView):
                 'email': request.data['email'],
                 'password': make_password(request.data['password'])
             }
+
+        serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid(raise_exception=False):
             user = serializer.create(user_data)
@@ -92,8 +92,8 @@ class EmailVerifyView(GenericAPIView):
     serializer_class = EmailVerifySerializer
 
     def post(self, request):
-        if request.data['email'] in authenticate_num_dict and authenticate_num_dict[request.data['email']] == \
-                request.data['random_num']:
+        if request.data['email'] in authenticate_num_dict and \
+                authenticate_num_dict[request.data['email']] == request.data['random_num']:
             authenticate_num_dict.pop(request.data['email'])
             return Response({"message": "EMAIL VERIFY SUCCESS", "email": request.data['email']})
         else:
@@ -128,8 +128,6 @@ class UserLoginAPIView(GenericAPIView):
 
 
 class UserLogoutAPIView(APIView):
-    permission_classes = [AllowAny]
-
     def post(self, request):
         response = Response(
             {'message': "Successfully logged out"},
