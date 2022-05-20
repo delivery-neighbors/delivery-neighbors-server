@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from deliveryNeighbors.models import User
+from accounts.models import User
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

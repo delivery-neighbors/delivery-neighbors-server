@@ -49,7 +49,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # app
-    'deliveryNeighbors',
+    'accounts',
 
     # jwt
     'rest_framework_simplejwt',
@@ -62,15 +62,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',
 
 
     # django-rest-framework
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
-    'dj_rest_auth',
-    'dj_rest_auth.registration',
 
     # dj-rest-auth
     "dj_rest_auth",
@@ -88,7 +85,7 @@ INSTALLED_APPS = [
 
 SITE_ID = 1
 
-AUTH_USER_MODEL = 'deliveryNeighbors.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 # ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # username 필드 사용 x
 # ACCOUNT_USERNAME_REQUIRED = False         # username 필드 사용 x
@@ -148,7 +145,7 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
-AUTH_USER_MODEL = 'deliveryNeighbors.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 AUTH_PASSWORD_VALIDATORS = [
     {

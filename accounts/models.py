@@ -1,32 +1,29 @@
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.db import models
-from django.utils.translation import gettext_lazy
 
 
 class UserManager(BaseUserManager):
-
     use_in_migrations = True
 
-    def create_user(self, email, username, password=None, profile_img):
-
+    def create_user(self, email, username, password, avatar):
         if not email:
             raise ValueError('Users must have an email address')
 
         user = self.model(
             email=self.normalize_email(email),
-            username=username
-            profile_img=profile_img
+            username=username,
+            avatar=avatar
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, password, profile_img):
+    def create_superuser(self, email, username, password, avatar):
         user = self.create_user(
             email=self.normalize_email(email),
             username=username,
             password=password,
-            profile_img=profile_img
+            avatar=avatar
         )
         user.is_admin = True
         user.is_superuser = True
@@ -36,7 +33,6 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-
     objects = UserManager()
 
     email = models.EmailField(
@@ -49,9 +45,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         unique=True
     )
     avatar = models.ImageField(blank=True, upload_to='images/avatar/%Y/%m/%d/',
-                                default='images/avatar/default_img.jpg')
+                               default='images/avatar/default_img.jpg')
     date_joined = models.DateTimeField(auto_now_add=True)
-    
+
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)

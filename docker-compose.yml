@@ -10,7 +10,7 @@ services:
       MYSQL_USER: "dnuser"
       MYSQL_PASSWORD: "dnpass"
       MYSQL_ROOT_PASSWORD: "dnpass"
-      MYSQL_DATABASE: "deliveryNeighbors"
+      MYSQL_DATABASE: "accounts"
     restart: always
     volumes:
       - ./db:/var/lib/mariadb
