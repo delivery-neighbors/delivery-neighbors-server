@@ -11,7 +11,7 @@ class UserManager(BaseUserManager):
 
         user = self.model(
             email=self.normalize_email(email),
-            username=username
+            username=username,
         )
         user.set_password(password)
         user.save(using=self._db)
@@ -21,7 +21,7 @@ class UserManager(BaseUserManager):
         user = self.create_user(
             email=self.normalize_email(email),
             username=username,
-            password=password
+            password=password,
         )
         user.is_admin = True
         user.is_superuser = True
@@ -42,8 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=False,
         unique=True
     )
-    avatar = models.ImageField(blank=True, upload_to='images/avatar/%Y/%m/%d/',
-                               default='images/avatar/default_img.jpg')
+    avatar = models.URLField(blank=True, default="http://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg")
     date_joined = models.DateTimeField(auto_now_add=True)
 
     is_active = models.BooleanField(default=True)

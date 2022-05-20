@@ -8,7 +8,6 @@ from dj_rest_auth.registration.views import SocialLoginView
 from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password, check_password
-from django.core.files.base import ContentFile
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -39,6 +38,8 @@ class UserCreateAPIView(CreateAPIView):
     serializer_class = UserCreateSerializer
 
     def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+
         if request.data['avatar']:
             user_data = {
                 'username': request.data['username'],
@@ -52,8 +53,6 @@ class UserCreateAPIView(CreateAPIView):
                 'email': request.data['email'],
                 'password': make_password(request.data['password'])
             }
-
-        serializer = self.serializer_class(data=user_data)
 
         if serializer.is_valid(raise_exception=False):
             user = serializer.create(user_data)
@@ -129,6 +128,8 @@ class UserLoginAPIView(GenericAPIView):
 
 
 class UserLogoutAPIView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         response = Response(
             {'message': "Successfully logged out"},
@@ -243,12 +244,7 @@ def kakao_callback(request):
         )
         # 프로필 사진 설정
         user = User.objects.get(email=email)
-        avatar_url = kakao_profile['profile_image_url']
-        if avatar_url is not None:
-            avatar_request = requests.get(avatar_url)
-            user.avatar.save(
-                f"{kakao_profile['nickname']}-avatar.png", ContentFile(avatar_request.content)
-            )
+        user.avatar = kakao_profile['profile_image_url']
         user.save()
 
         accept_status = accept.status_code
