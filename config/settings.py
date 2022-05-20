@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     # jwt
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-  
+
     'django.contrib.admin',
     'django.contrib.sites',
     'django.contrib.auth',
@@ -62,7 +62,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
 
     # django-rest-framework
     'rest_framework',
@@ -78,7 +77,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.kakao',
-  
+
     # api 문서 자동화
     'drf_yasg',
 ]
@@ -89,7 +88,7 @@ AUTH_USER_MODEL = 'accounts.User'
 
 # ACCOUNT_USER_MODEL_USERNAME_FIELD = None  # username 필드 사용 x
 # ACCOUNT_USERNAME_REQUIRED = False         # username 필드 사용 x
-ACCOUNT_EMAIL_REQUIRED = True             # email 필드 사용 o
+ACCOUNT_EMAIL_REQUIRED = True  # email 필드 사용 o
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_AUTHENTICATION_METHOD = 'email'
 
@@ -137,8 +136,8 @@ DATABASES = {
     #     'PORT': 3306,
     # }
     'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -189,9 +188,9 @@ MEDIA_URL = '/media/'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     # Serializer default permission class definition ; view permission class 정의 x 시 참조
     'DEFAULT_PERMISSION_CLASSES': [
@@ -224,7 +223,7 @@ JWT_SECRET_KEY = get_secret("JWT_SECRET_KEY")
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=3),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS': False,
+    'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': True,
 

@@ -39,14 +39,12 @@ class UserCreateAPIView(CreateAPIView):
     serializer_class = UserCreateSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-
-        if request.data['profile_img']:
+        if request.data['avatar']:
             user_data = {
                 'username': request.data['username'],
                 'email': request.data['email'],
                 'password': make_password(request.data['password']),
-                'profile_img': request.data['profile_img']
+                'avatar': request.data['avatar']
             }
         else:
             user_data = {
@@ -54,6 +52,8 @@ class UserCreateAPIView(CreateAPIView):
                 'email': request.data['email'],
                 'password': make_password(request.data['password'])
             }
+
+        serializer = self.serializer_class(data=user_data)
 
         if serializer.is_valid(raise_exception=False):
             user = serializer.create(user_data)
@@ -129,8 +129,6 @@ class UserLoginAPIView(GenericAPIView):
 
 
 class UserLogoutAPIView(APIView):
-    permission_classes = [AllowAny]
-
     def post(self, request):
         response = Response(
             {'message': "Successfully logged out"},
