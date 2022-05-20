@@ -232,6 +232,7 @@ SIMPLE_JWT = {
     'SIGNING_KEY': JWT_SECRET_KEY,
 }
 
+# kakao 소셜 로그인
 SOCIAL_OAUTH_CONFIG = {
     'KAKAO_REST_API_KEY': get_secret('KAKAO_REST_API_KEY'),
     "KAKAO_REDIRECT_URI": get_secret('KAKAO_REDIRECT_URI'),

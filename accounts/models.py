@@ -5,25 +5,23 @@ from django.db import models
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    def create_user(self, email, username, password, avatar):
+    def create_user(self, email, username, password):
         if not email:
             raise ValueError('Users must have an email address')
 
         user = self.model(
             email=self.normalize_email(email),
             username=username,
-            avatar=avatar
         )
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, password, avatar):
+    def create_superuser(self, email, username, password):
         user = self.create_user(
             email=self.normalize_email(email),
             username=username,
             password=password,
-            avatar=avatar
         )
         user.is_admin = True
         user.is_superuser = True
@@ -44,8 +42,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=False,
         unique=True
     )
-    avatar = models.ImageField(blank=True, upload_to='images/avatar/%Y/%m/%d/',
-                               default='images/avatar/default_img.jpg')
+    avatar = models.URLField(blank=True, default="http://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg")
     date_joined = models.DateTimeField(auto_now_add=True)
 
     is_active = models.BooleanField(default=True)
