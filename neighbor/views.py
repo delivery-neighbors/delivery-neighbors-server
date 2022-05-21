@@ -35,20 +35,19 @@ class UserReviewListAPIView(generics.ListAPIView):
 
 @api_view(('GET',))
 def user_review_update(request, userid, reviewid):
-    if request.method == 'GET':
-        try:
-            obj = UserReview.objects.get(user_id=userid, review_id=reviewid)
-            obj.count += 1
-            obj.save()
-            serializer = UserReviewSerializer(obj)
-            return Response(serializer.data)
+    try:
+        obj = UserReview.objects.get(user_id=userid, review_id=reviewid)
+        obj.count += 1
+        obj.save()
+        serializer = UserReviewSerializer(obj)
+        return Response(serializer.data)
 
-        except UserReview.DoesNotExist:
-            user_id = User.objects.get(id=userid)
-            review_id = Review.objects.get(id=reviewid)
-            obj = UserReview.objects.create(
-                user_id=user_id,
-                review_id=review_id
-            )
-            serializer = UserReviewSerializer(obj)
-            return Response(serializer.data)
+    except UserReview.DoesNotExist:
+        user_id = User.objects.get_object_or_404(id=userid)  # 유저나 리뷰 없으면 404 에러
+        review_id = Review.objects.get_object_or_404(id=reviewid)
+        obj = UserReview.objects.create(
+            user_id=user_id,
+            review_id=review_id
+        )
+        serializer = UserReviewSerializer(obj)
+        return Response(serializer.data)
