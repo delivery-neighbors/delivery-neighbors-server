@@ -110,21 +110,21 @@ class UserLoginAPIView(GenericAPIView):
         request_email = request.data['email']
         request_password = request.data['password']
 
-        user = User.objects.filter(email=request_email)
-
-        if user:
-            user_password = user[0].password
+        try:
+            user = User.objects.get(email=request_email)  # 여기서 객체가 없으면 DoesNotExist 예외처리
+            user_password = user.password
             if check_password(request_password, user_password):
-                token = RefreshToken.for_user(user[0])
+                token = RefreshToken.for_user(user)
                 refresh = str(token)
                 access = str(token.access_token)
 
                 return JsonResponse(
-                    {"message": "USER LOGIN SUCCESS", 'user': user[0].pk, 'refresh': refresh, 'access': access})
+                    {'user': user.pk, 'refresh': refresh, 'access': access})  # 성공메세지
             else:
-                return Response("WRONG PASSWORD")
-        else:
-            return Response("USER NOT FOUND FOR THIS EMAIL")
+                return JsonResponse({"error_message": "wrong password"})  # 에러메세지
+
+        except User.DoesNotExist:
+            return JsonResponse({"error_message": "user not found for this email"})  # 에러메세지 2
 
 
 class UserLogoutAPIView(APIView):
