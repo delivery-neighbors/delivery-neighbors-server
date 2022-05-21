@@ -11,7 +11,7 @@ class Review(models.Model):
 
 
 class UserReview(models.Model):
-    review_id = models.OneToOneField(Review, on_delete=models.CASCADE)
+    review_id = models.ForeignKey(Review, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     count = models.IntegerField(default=1)
 

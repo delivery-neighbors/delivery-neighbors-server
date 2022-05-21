@@ -1,4 +1,5 @@
 from rest_framework import generics
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from accounts.models import User
@@ -30,3 +31,24 @@ class UserReviewListAPIView(generics.ListAPIView):
         serializer = UserReviewSerializer(review, many=True)
 
         return Response(serializer.data)
+
+
+@api_view(('GET',))
+def user_review_update(request, userid, reviewid):
+    if request.method == 'GET':
+        try:
+            obj = UserReview.objects.get(user_id=userid, review_id=reviewid)
+            obj.count += 1
+            obj.save()
+            serializer = UserReviewSerializer(obj)
+            return Response(serializer.data)
+
+        except UserReview.DoesNotExist:
+            user_id = User.objects.get(id=userid)
+            review_id = Review.objects.get(id=reviewid)
+            obj = UserReview.objects.create(
+                user_id=user_id,
+                review_id=review_id
+            )
+            serializer = UserReviewSerializer(obj)
+            return Response(serializer.data)

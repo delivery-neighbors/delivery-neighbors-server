@@ -9,5 +9,5 @@ urlpatterns = [
     path('review/', views.ReviewListAPIView.as_view()),
     path('review/<int:pk>/', views.ReviewRetrieveAPIView.as_view()),
     path('user/<int:userid>/review/', views.UserReviewListAPIView.as_view()),
-    # path('user/<int:userid>/review/<int:reviewid>/', views.UserReviewCountAPIView.as_view()),
+    path('user/<int:userid>/review/<int:reviewid>/', views.user_review_update),
 ]
