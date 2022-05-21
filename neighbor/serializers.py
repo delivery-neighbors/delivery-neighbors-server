@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from accounts.models import User
-from neighbor.models import Review
+from neighbor.models import Review, UserReview
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -13,4 +13,10 @@ class UserSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
+        fields = '__all__'
+
+
+class UserReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserReview
         fields = '__all__'

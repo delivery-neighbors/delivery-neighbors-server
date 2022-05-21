@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from neighbor.models import Review
+from neighbor.models import Review, UserReview
 
 
 class ReviewAdmin(admin.ModelAdmin):
@@ -8,3 +8,4 @@ class ReviewAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Review, ReviewAdmin)
+admin.site.register(UserReview)

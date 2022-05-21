@@ -8,6 +8,6 @@ urlpatterns = [
     # review
     path('review/', views.ReviewListAPIView.as_view()),
     path('review/<int:pk>/', views.ReviewRetrieveAPIView.as_view()),
-    # path('user/<int:pk>/review/', views.UserReviewListAPIView.as_view()),
-    # path('user/<int:pk>/review/', views.UserReviewCreateAPIView.as_view()),
+    path('user/<int:userid>/review/', views.UserReviewListAPIView.as_view()),
+    # path('user/<int:userid>/review/<int:reviewid>/', views.UserReviewCountAPIView.as_view()),
 ]
