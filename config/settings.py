@@ -50,6 +50,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     # app
     'accounts',
+    'neighbor',
 
     # jwt
     'rest_framework_simplejwt',
