@@ -10,13 +10,19 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'username', 'avatar', 'date_joined', 'last_login', 'is_active']
 
 
-class ReviewSerializer(serializers.ModelSerializer):
+class ReviewSerializer(serializers.Serializer):
+    reviewList = serializers.ListField(child=serializers.CharField())
+
+
+class ReviewRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
 
 
 class UserReviewSerializer(serializers.ModelSerializer):
+    review = serializers.CharField(source='review_id.content')
+
     class Meta:
         model = UserReview
-        fields = '__all__'
+        fields = ['review', 'count']

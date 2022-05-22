@@ -1,25 +1,37 @@
 from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from accounts.models import User
 from neighbor.models import Review, UserReview
-from neighbor.serializers import ReviewSerializer, UserSerializer, UserReviewSerializer
+from neighbor.serializers import ReviewSerializer, UserSerializer, UserReviewSerializer, ReviewRetrieveSerializer
 
 
 class UserRetrieveAPIView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+# ver 1)
+# class ReviewListAPIView(generics.ListAPIView):
+#     queryset = Review.objects.all()
+#     serializer_class = ReviewSerializer
 
-class ReviewListAPIView(generics.ListAPIView):
-    queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
+
+# ver 2)
+class ReviewListAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        reviewList = Review.objects.all()
+        data = {
+            'reviewList': reviewList,
+        }
+        serializer = ReviewSerializer(instance=data)
+        return Response(serializer.data)
 
 
 class ReviewRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Review.objects.all()
-    serializer_class = ReviewSerializer
+    serializer_class = ReviewRetrieveSerializer
 
 
 class UserReviewListAPIView(generics.ListAPIView):
