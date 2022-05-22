@@ -17,3 +17,11 @@ class UserReview(models.Model):
 
     def __str__(self):
         return f"{self.review_id} {self.count}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['review_id', 'user_id'],
+                name="user-review"
+            )
+        ]
