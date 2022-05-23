@@ -55,8 +55,8 @@ def user_review_update(request, userid, reviewid):
         return Response(serializer.data)
 
     except UserReview.DoesNotExist:
-        user_id = User.objects.get_object_or_404(id=userid)  # 유저나 리뷰 없으면 404 에러
-        review_id = Review.objects.get_object_or_404(id=reviewid)
+        user_id = User.objects.get(id=userid)
+        review_id = Review.objects.get(id=reviewid)
         obj = UserReview.objects.create(
             user_id=user_id,
             review_id=review_id
