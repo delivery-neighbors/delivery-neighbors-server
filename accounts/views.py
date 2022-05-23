@@ -6,7 +6,7 @@ from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
 from django.conf import settings
-from django.contrib.auth import login
+from django.contrib import auth
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.mail import send_mail
 from django.http import JsonResponse
@@ -229,7 +229,7 @@ def kakao_callback(request):
         accept_json = accept.json()
         accept_json.pop("user", None)
 
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        auth.login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         print("kakao 로그인 성공!")
 
         return JsonResponse(accept_json)
@@ -254,7 +254,7 @@ def kakao_callback(request):
         accept_json.pop("user", None)
 
         user = User.objects.get(email=email)
-        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        auth.login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         print("kakao 회원 가입 성공!")
 
         return JsonResponse(accept_json)
@@ -282,5 +282,6 @@ def kakao_logout(request):
         return JsonResponse(
             {"error_message": f"failed to logout, {accept_status}"}, status=accept_status
         )
+    auth.logout(request)
 
     return JsonResponse(accept.json())
