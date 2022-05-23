@@ -4,20 +4,34 @@ from chat.models import Room, Category
 from config.authentication import CustomJWTAuthentication
 
 
-# serializer 사용 안 하고 objects.create()로 생성
-# class RoomCreateSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Room
-#         fields = ['leader',
-#                   'room_name',
-#                   'category',
-#                   'delivery_platform',
-#                   'delivery_fee',
-#                   'max_participant_num',
-#                   'pickup_address',
-#                   'pickup_latitude',
-#                   'pickup_longitude']
+class RoomListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = [
+            'id',
+            'leader',
+            'room_name',
+            'created_at',
+            'max_participant_num',
+            'delivery_fee'
+        ]
 
+
+class RoomRetrieveSerializer(serializers.ModelSerializer):
+    category_background_img = serializers.URLField(source='category.category_background_img')
+
+    class Meta:
+        model = Room
+        fields = [
+            'id',
+            'leader',
+            'room_name',
+            'delivery_fee',
+            'max_participant_num',
+            'created_at',
+            'pickup_address',
+            'category_background_img'
+        ]
 
 # class CategoryCreateSerializer(serializers.ModelSerializer):
 #     class Meta:
