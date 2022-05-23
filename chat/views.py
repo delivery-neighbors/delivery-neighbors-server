@@ -1,7 +1,5 @@
-import requests
-from django.shortcuts import render
-from rest_framework.generics import CreateAPIView, ListAPIView
-from rest_framework.views import APIView
+from rest_framework.generics import *
+from rest_framework.renderers import JSONRenderer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,11 +7,16 @@ from rest_framework import status
 import config.authentication
 from accounts.models import User
 from chat.models import Category, Room
-from chat.serializers import CategoryListSerializer
+from chat.serializers import CategoryListSerializer, RoomListSerializer, RoomRetrieveSerializer
 from config.authentication import CustomJWTAuthentication
 
 
-class RoomCreateAPIView(APIView):
+class RoomGetCreateAPIView(ListCreateAPIView):
+    def get(self, request):
+        queryset = Room.objects.all()
+        serializer = RoomListSerializer(instance=queryset, many=True)
+        return Response(serializer.data)
+
     def post(self, request):
         # request 에서 user_id 추출
         leader = CustomJWTAuthentication.authenticate(self, request)
@@ -39,6 +42,36 @@ class RoomCreateAPIView(APIView):
         )
 
         return Response(status=status.HTTP_201_CREATED)
+
+
+class RoomGetDestroyAPIView(RetrieveDestroyAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomRetrieveSerializer
+
+    def get(self, request, *args, **kwargs):
+        # path-variable <int:pk> 정보를 통해 해당 id의 room 객체 get
+        room = self.get_object()
+
+        # RoomRetrieveSerializer 이용해
+        serializer = self.serializer_class
+        # retrieve()
+        return self.retrieve(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        user = CustomJWTAuthentication.authenticate(self, request)
+        print("user", user)
+        room = self.get_object()
+        room_leader = room.leader.pk
+        print("room leader", room_leader)
+
+        # 채팅방 leader 와  로그인 유저가 같으면 삭제 가능
+        if user == room_leader:
+            self.destroy(request, *args, **kwargs)
+            return Response(status=status.HTTP_200_OK)
+
+        else:
+            # 다르면 401 UNAUTHORIZED 에러 응답
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
 # class CategoryCreateView(CreateAPIView):
