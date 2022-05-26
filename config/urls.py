@@ -26,6 +26,7 @@ urlpatterns = [
     # apps
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
+    path('', include('neighbor.urls')),
     path('chat/', include('chat.urls')),
 
     # Swagger
