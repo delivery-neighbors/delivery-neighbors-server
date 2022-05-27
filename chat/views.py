@@ -1,3 +1,5 @@
+from datetime import timedelta, datetime
+
 from django.db.models import Q
 from rest_framework.generics import *
 from rest_framework.renderers import JSONRenderer
@@ -16,11 +18,12 @@ from haversine import haversine, Unit
 
 class RoomGetCreateAPIView(ListCreateAPIView):
     def get(self, request):
+        category_id = request.GET['category_id']
+        print("category", category_id)
+
         request_latitude = float(request.GET['user_latitude'])
         request_longitude = float(request.GET['user_longitude'])
         request_location = (request_latitude, request_longitude)
-        print("------------------------------------")
-        print("request location", request_location)
 
         # filter()에 넣어줄 조건
         # 1km에 대해 위도는 0.01 차이, 경도는 0.015 차이
@@ -38,20 +41,58 @@ class RoomGetCreateAPIView(ListCreateAPIView):
                                                (room.pickup_latitude, room.pickup_longitude),
                                                unit=Unit.METERS) < 500]
 
-        for room in rooms_within_500meters:
-            distance = haversine(request_location, (room.pickup_latitude, room.pickup_longitude), unit=Unit.METERS)
+        if category_id:
+            category = Category.objects.get(id=category_id)
+            rooms_by_category = [room for room in rooms_within_500meters
+                                 if room.category == category]
+        else:
+            rooms_by_category = rooms_within_500meters
+        print("rooms_by_category", rooms_by_category)
+
+        for room in rooms_by_category:
             room_id = room.id
-            room = room.__dict__
-            room['distance'] = int(distance)
+
+            # created_at 가공
+            now = datetime.now()
+            created_at = room.created_at
+
+            if now - created_at >= timedelta(days=7):
+                # strftime() -> datetime 형식화 메소드
+                # %b -> 달을 짧게 출력, %d -> 날 출력
+                room.created_at = created_at.strftime("%b %d")
+
+            elif now - created_at >= timedelta(days=1):
+                # %a 옵션 -> datetime 객체의 요일을 짧게 출력
+                room.created_at = created_at.strftime("%a")
+
+            else:
+                # %H -> 시간을 0~23 사용해 출력, %M -> 분 출력
+                room.created_at = created_at.strftime("%H:%M")
+
+            # 1인당 배달비 계산
+            delivery_fee = room.delivery_fee
+            max_participant_num = room.max_participant_num
+            del_fee_for_person = int(delivery_fee / max_participant_num)
+            room.delivery_fee = del_fee_for_person
+
+            # 거리 계산
+            distance = haversine(request_location, (room.pickup_latitude, room.pickup_longitude), unit=Unit.METERS)
 
             # 현재 채팅방 참여자 수 추출
             participant_num = ChatUser.objects.filter(room_id=room_id).count()
-            # 현재 채팅방 참여자 수 정보 추가를 위해 room 객체를 dict 로 변환 뒤
+
+            # 거리, 현재 채팅방 참여자 수 정보 추가를 위해 room 객체를 dict 로 변환 뒤
             # 해당 dict 에 participant_num key-value 추가
-            # -> room 객체에 participant_num 정보 자동 삽입
+            room = room.__dict__
+            room['distance'] = int(distance)
             room['participant_num'] = participant_num
 
-        serializer = RoomListSerializer(instance=rooms_within_500meters, many=True)
+        # if category_id:
+        #     result = rooms_within_500meters.filter(category=category_id)
+        # else:
+        #     result = rooms_within_500meters
+
+        serializer = RoomListSerializer(instance=rooms_by_category, many=True)
         return Response(serializer.data)
 
     def post(self, request):
@@ -92,6 +133,16 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
         # path-variable <int:pk> 정보를 통해 해당 id의 room 객체 get
         room = self.get_object()
         room_id = room.pk
+
+        # created_at 가공
+        created_at = room.created_at
+        room.created_at = created_at.strftime("%Y.%m.%d")
+
+        # 1인당 배달비 계산
+        delivery_fee = room.delivery_fee
+        max_participant_num = room.max_participant_num
+        del_fee_for_person = int(delivery_fee / max_participant_num)
+        room.delivery_fee = del_fee_for_person
 
         # 현재 채팅방 참여자 수 추출
         participant_num = ChatUser.objects.filter(room_id=room_id).count()

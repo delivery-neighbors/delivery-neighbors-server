@@ -6,11 +6,9 @@ from config.authentication import CustomJWTAuthentication
 
 # 채팅방 목록(메인 화면) serializer
 class RoomListSerializer(serializers.ModelSerializer):
-    distance = serializers.FloatField()
+    distance = serializers.IntegerField()
     leader_avatar = serializers.URLField(source='leader.avatar')
     participant_num = serializers.IntegerField()
-
-    # todo created_at 가공 후 내보낼 수 있는지 알아 보기
 
     class Meta:
         model = Room
