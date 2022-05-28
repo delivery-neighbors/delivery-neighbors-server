@@ -6,7 +6,7 @@ services:
       - "80:80"
     volumes:
       - ./config/nginx/:/etc/nginx/conf.d/
-      - ./static/:/django/deliveryNeighbors/static/
+      - ./static/:/django/deliveryNeighbors/static
     depends_on:
       - web
 
@@ -32,9 +32,11 @@ services:
     command:
       bash -c "python manage.py makemigrations
       && python manage.py migrate
-      && gunicorn --bind 0.0.0.0:8000 config.wsgi:application -t 240"
+      && gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 240"
     ports:
       - "8000:8000"
+    expose:
+      - "8000"
     restart: always
     depends_on:
       - db
