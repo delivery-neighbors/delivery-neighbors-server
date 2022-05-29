@@ -11,6 +11,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.shortcuts import redirect
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.generics import *
 from rest_framework.permissions import AllowAny
@@ -157,6 +158,7 @@ class UserLogoutAPIView(APIView):
 
 
 # Code Request
+@csrf_exempt
 def kakao_login(request):
     url = "https://kauth.kakao.com/oauth/authorize?client_id={0}&redirect_uri={1}&response_type={2}"\
         .format(KAKAO_CLIENT_ID, KAKAO_REDIRECT_URI, 'code')
@@ -164,6 +166,7 @@ def kakao_login(request):
 
 
 # kakao Login or Signup
+@csrf_exempt
 def kakao_callback(request):
     code = request.GET.get('code')  # 토큰 받기 요청에 필요한 인가 코드
     print(f"인가 코드: {code}")
@@ -265,6 +268,7 @@ class KakaoLogin(SocialLoginView):
     callback_url = KAKAO_REDIRECT_URI
 
 
+@csrf_exempt
 def kakao_logout(request):
     if request.user.is_authenticated:
         print(f"현재 로그 아웃할 유저: {request.user.username}")
