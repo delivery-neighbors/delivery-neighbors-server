@@ -25,7 +25,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 
 from config.settings import SOCIAL_OAUTH_CONFIG
 
-BASE_URL = "http://localhost:8000/"
+BASE_URL = "http://3.38.38.248/"
 
 KAKAO_CLIENT_ID = SOCIAL_OAUTH_CONFIG['KAKAO_REST_API_KEY']
 KAKAO_REDIRECT_URI = SOCIAL_OAUTH_CONFIG['KAKAO_REDIRECT_URI']
