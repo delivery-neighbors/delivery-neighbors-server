@@ -13,4 +13,3 @@ COPY . /app/
 EXPOSE 8000
 
 CMD ["bash", "-c", "python manage.py collectstatic --settings=BACKEND.settings.deploy --no-input"]
-#CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
