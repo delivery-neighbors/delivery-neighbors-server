@@ -232,6 +232,7 @@ def kakao_callback(request):
         accept_json = accept.json()
         accept_json.pop("user", None)
 
+        user = User.objects.get(email=email)
         auth.login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         print("kakao 로그인 성공!")
 
