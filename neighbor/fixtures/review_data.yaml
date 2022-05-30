@@ -1,0 +1,44 @@
+- model: neighbor.review
+  pk: 1
+  fields:
+    content: 최고의 팟 리더
+- model: neighbor.review
+  pk: 2
+  fields:
+    content: 빠르게 음식을 전달해줘요
+- model: neighbor.review
+  pk: 3
+  fields:
+    content: 응답이 빨라요
+- model: neighbor.review
+  pk: 4
+  fields:
+    content: 시간을 잘 지켜요
+- model: neighbor.review
+  pk: 5
+  fields:
+    content: 친절하고 매너가 좋아요
+- model: neighbor.review
+  pk: 6
+  fields:
+    content: 상냥해요
+- model: neighbor.review
+  pk: 7
+  fields:
+    content: 돈을 받고 사라졌어요
+- model: neighbor.review
+  pk: 8
+  fields:
+    content: 응답이 느려요
+- model: neighbor.review
+  pk: 9
+  fields:
+    content: 시간을 안 지켜요
+- model: neighbor.review
+  pk: 10
+  fields:
+    content: 불친절해요
+- model: neighbor.review
+  pk: 11
+  fields:
+    content: 반말을 사용해요

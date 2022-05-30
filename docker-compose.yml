@@ -1,0 +1,47 @@
+version: "3.3"
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./config/nginx/:/etc/nginx/conf.d/
+      - ./static/:/django/deliveryNeighbors/static
+    depends_on:
+      - web
+
+  db:
+    image: mariadb:latest
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_USER: "dnuser"
+      MYSQL_PASSWORD: "dnpass"
+      MYSQL_ROOT_PASSWORD: "dnpass"
+      MYSQL_DATABASE: "deliveryNeighbors"
+    restart: always
+    volumes:
+      - ./db:/var/lib/mariadb
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command:
+      bash -c "python manage.py makemigrations
+      && python manage.py migrate
+      && python manage.py runserver 0.0.0.0:8000"
+#      && gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 240"
+
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - TZ=Asia/Seoul
+
