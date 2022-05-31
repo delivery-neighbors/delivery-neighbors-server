@@ -48,7 +48,7 @@ class RoomRetrieveSerializer(serializers.ModelSerializer):
 
 
 # 카테고리 serializer
-class CategoryListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = '__all__'
+# class CategoryListSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Category
+#         fields = '__all__'

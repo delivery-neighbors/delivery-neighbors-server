@@ -10,7 +10,7 @@ from rest_framework import status
 import config.authentication
 from accounts.models import User
 from chat.models import Category, Room, ChatUser
-from chat.serializers import CategoryListSerializer, RoomListSerializer, RoomRetrieveSerializer
+from chat.serializers import RoomListSerializer, RoomRetrieveSerializer
 from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
@@ -86,11 +86,6 @@ class RoomGetCreateAPIView(ListCreateAPIView):
             room = room.__dict__
             room['distance'] = int(distance)
             room['participant_num'] = participant_num
-
-        # if category_id:
-        #     result = rooms_within_500meters.filter(category=category_id)
-        # else:
-        #     result = rooms_within_500meters
 
         serializer = RoomListSerializer(instance=rooms_by_category, many=True)
         return Response(serializer.data)
@@ -173,9 +168,9 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
-class CategoryListView(ListAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategoryListSerializer
+# class CategoryListView(ListAPIView):
+#     queryset = Category.objects.all()
+#     serializer_class = CategoryListSerializer
 
 
 class ChatUserView(ListCreateAPIView):

@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path
 from chat import views
 
@@ -8,7 +10,7 @@ urlpatterns = [
     # 단일 채팅방 조회 & 삭제
     path('room/<int:pk>', views.RoomRetrieveDestroyAPIView.as_view(), name='room-sub'),
     # 카테고리 조회
-    path('category/', views.CategoryListView.as_view(), name='category-list'),
+    # path('category/', views.CategoryListView.as_view(), name='category-list'),
     # 유저 채팅방 참여
     path('room/<int:room_id>/users/', views.ChatUserView.as_view(), name='chat_user'),
 ]
