@@ -31,14 +31,15 @@ services:
       dockerfile: Dockerfile
     command:
       bash -c "python manage.py makemigrations
-      && python manage.py migrate --settings=config.settings.prod
-      && python manage.py runserver 0.0.0.0:8000 --settings=config.settings.prod"
+      && python manage.py migrate
+      && python manage.py runserver 0.0.0.0:8000"
 #      && gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 240"
-
     ports:
       - "8000:8000"
     expose:
       - "8000"
+    env_file:
+      - .env
     restart: always
     depends_on:
       - db
