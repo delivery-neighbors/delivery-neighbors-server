@@ -1,5 +1,5 @@
-asgiref==3.5.1
-certifi==2021.10.8
+asgiref==3.5.2
+certifi==2022.5.18.1
 cffi==1.15.0
 charset-normalizer==2.0.12
 coreapi==2.3.3
@@ -11,7 +11,7 @@ Django==4.0.4
 django-allauth==0.50.0
 django-rest-auth==0.9.5
 djangorestframework==3.13.1
-djangorestframework-simplejwt==5.1.0
+djangorestframework-simplejwt==5.2.0
 drf-yasg==1.20.0
 fixture==1.5.11
 haversine==2.5.1
@@ -24,7 +24,7 @@ MarkupSafe==2.1.1
 mysqlclient==2.1.0
 oauthlib==3.2.0
 packaging==21.3
-Pillow==9.1.0
+Pillow==9.1.1
 pycparser==2.21
 PyJWT==2.4.0
 pyparsing==3.0.9
