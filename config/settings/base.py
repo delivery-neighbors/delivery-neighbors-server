@@ -8,22 +8,25 @@ from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-secret_file = os.path.join(BASE_DIR, 'secrets.json')
 
-with open(secret_file) as f:
-    secrets = json.loads(f.read())
+class Secrets:
+    def __init__(self, secret_file):
+        with open(secret_file) as f:
+            self.secrets = json.loads(f.read())
 
-
-def get_secret(setting):
-    try:
-        return secrets[setting]  # secrets.json 파일에 setting 에 해당하는 키값 있으면 반환
-    except KeyError:
-        error_msg = "Set the {} environment variable".format(setting)
-        raise ImproperlyConfigured(error_msg)
+    def get_secret(self, setting):
+        try:
+            return self.secrets.get(setting)
+        except:
+            error_msg = f'Set the {setting} environment variable'
+            raise ImproperlyConfigured(error_msg)
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_secret("SECRET_KEY")
+secret_file = os.path.join(BASE_DIR, 'secrets.json')
+secrets = Secrets(secret_file)
+
+SECRET_KEY = secrets.get_secret("SECRET_KEY")
 
 INSTALLED_APPS = [
     # app
@@ -172,7 +175,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 REST_USE_JWT = True
 
-JWT_SECRET_KEY = get_secret("JWT_SECRET_KEY")
+JWT_SECRET_KEY = secrets.get_secret("JWT_SECRET_KEY")
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=3),
@@ -186,7 +189,7 @@ SIMPLE_JWT = {
 }
 
 SOCIAL_OAUTH_CONFIG = {
-    'KAKAO_REST_API_KEY': get_secret('KAKAO_REST_API_KEY'),
-    "KAKAO_REDIRECT_URI": get_secret('KAKAO_REDIRECT_URI'),
-    "KAKAO_SECRET_KEY": get_secret('KAKAO_SECRET_KEY')
+    'KAKAO_REST_API_KEY': secrets.get_secret('KAKAO_REST_API_KEY'),
+    "KAKAO_REDIRECT_URI": secrets.get_secret('KAKAO_REDIRECT_URI'),
+    "KAKAO_SECRET_KEY": secrets.get_secret('KAKAO_SECRET_KEY')
 }
