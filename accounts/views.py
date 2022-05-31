@@ -23,7 +23,7 @@ from accounts.serializers import *
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
 
-from config.settings import SOCIAL_OAUTH_CONFIG
+from config.settings.base import SOCIAL_OAUTH_CONFIG
 
 BASE_URL = "http://3.38.38.248/"
 
