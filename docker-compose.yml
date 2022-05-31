@@ -31,8 +31,8 @@ services:
       dockerfile: Dockerfile
     command:
       bash -c "python manage.py makemigrations
-      && python manage.py migrate
-      && python manage.py runserver 0.0.0.0:8000"
+      && python manage.py migrate --settings=config.settings.prod
+      && python manage.py runserver 0.0.0.0:8000 --settings=config.settings.prod"
 #      && gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 240"
 
     ports:

@@ -2,13 +2,10 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['http://3.38.38.248']
+ALLOWED_HOSTS = ['*']
 
 CSRF_COOKIE_SECURE = False
 CSRF_TRUSTED_ORIGINS = ['http://3.38.38.248']
-
-secret_file = os.path.join(BASE_DIR, 'secrets-prod.json')
-secrets = Secrets(secret_file)
 
 DATABASES = {
     'default': {
@@ -20,3 +17,6 @@ DATABASES = {
         'PORT': 3306,
     }
 }
+
+# WSGI application
+WSGI_APPLICATION = 'config.wsgi.prod.application'
