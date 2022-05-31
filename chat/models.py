@@ -23,4 +23,17 @@ class Room(models.Model):
     pickup_latitude = models.FloatField()
     pickup_longitude = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
+
+
+class Location(models.Model):
+    room = models.ForeignKey('Room', on_delete=models.CASCADE)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
+    cur_latitude = models.FloatField()
+    cur_longitude = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # 배달 수령 장소 도착 시 is_arrived 값을 True로 바꾸어줘
+    # 바꾼 이후 다시 PUT 요청이 와도 업데이트 되지 않도록 함(수령 이후의 위치 정보 노출 방지 위함)
+    is_arrived = models.BooleanField(default=False)

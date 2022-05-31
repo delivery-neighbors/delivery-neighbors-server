@@ -9,8 +9,8 @@ from rest_framework import status
 
 import config.authentication
 from accounts.models import User
-from chat.models import Category, Room, ChatUser
-from chat.serializers import RoomListSerializer, RoomRetrieveSerializer
+from chat.models import Category, Room, ChatUser, Location
+from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer
 from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
@@ -189,3 +189,37 @@ class ChatUserView(ListCreateAPIView):
         )
 
         return Response(status=status.HTTP_201_CREATED)
+
+
+class CurrentLocationView(ListCreateAPIView):
+    def post(self, request):
+        room_id = request.data['room_id']
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        cur_latitude = request.data['cur_latitude']
+        cur_longitude = request.data['cur_longitude']
+
+        try:
+            cur_location_obj = Location.objects.get(room_id=room_id, user_id=user_id)
+            # 전달 받은 채팅방 객체와 유저 객체 값을 갖는 Location 객체가 있으면
+            # 현재 위도,경도 값에 새롭게 요청 받은 위도,경도 값을 할당한 후 save()
+            cur_location_obj.cur_latitude = cur_latitude
+            cur_location_obj.cur_longitude = cur_longitude
+            cur_location_obj.save()
+            return Response({"message": "current_location_updated"}, status=status.HTTP_200_OK)
+
+        except Location.DoesNotExist:
+            Location.objects.create(
+                room=Room.objects.get(id=room_id),
+                user=User.objects.get(id=user_id),
+                cur_latitude=cur_latitude,
+                cur_longitude=cur_longitude
+            )
+            return Response({"message": "current_location_created"}, status=status.HTTP_201_CREATED)
+
+    def get(self, request):
+        room_id = int(request.GET['room_id'])
+        cur_location_list = Location.objects.filter(room_id=room_id)
+        serializer = CurLocationSerializer(instance=cur_location_list, many=True)
+
+        return Response(serializer.data)
