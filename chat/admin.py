@@ -11,7 +11,7 @@ class RoomAdmin(admin.ModelAdmin):
 
 
 class ChatUserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'room', 'user']
+    list_display = ['id', 'room', 'user', 'created_at', 'updated_at', 'is_chat_user']
 
 
 admin.site.register(Category, CategoryAdmin)
