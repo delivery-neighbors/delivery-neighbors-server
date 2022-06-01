@@ -23,12 +23,13 @@ from accounts.serializers import *
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
 
-from config.settings import SOCIAL_OAUTH_CONFIG
+from config.settings.base import SOCIAL_OAUTH_CONFIG
 
-BASE_URL = "http://3.38.38.248/"
+# BASE_URL = "http://3.38.38.248/"  # deploy version
+BASE_URL = "http://localhost:8000/"  # local version
 
 KAKAO_CLIENT_ID = SOCIAL_OAUTH_CONFIG['KAKAO_REST_API_KEY']
-KAKAO_REDIRECT_URI = SOCIAL_OAUTH_CONFIG['KAKAO_REDIRECT_URI']
+KAKAO_REDIRECT_URI = f"{BASE_URL}{SOCIAL_OAUTH_CONFIG['KAKAO_REDIRECT_URI']}"
 KAKAO_CLIENT_SECRET = SOCIAL_OAUTH_CONFIG['KAKAO_SECRET_KEY']
 
 authenticate_num_dict = {}

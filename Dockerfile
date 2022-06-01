@@ -12,4 +12,4 @@ RUN pip install -r requirements.txt
 COPY . /app/
 EXPOSE 8000
 
-CMD ["bash", "-c", "python manage.py collectstatic --settings=BACKEND.settings.deploy --no-input"]
+CMD ["bash", "-c", "python manage.py collectstatic --settings=BACKEND.settings.prod --no-input"]
