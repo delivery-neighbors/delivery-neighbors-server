@@ -1,13 +1,11 @@
 from datetime import timedelta, datetime
 
 from django.db.models import Q
+from django.http import JsonResponse
 from rest_framework.generics import *
-from rest_framework.renderers import JSONRenderer
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework import status
 
-import config.authentication
 from accounts.models import User
 from chat.models import Category, Room, ChatUser, Location
 from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer
@@ -103,7 +101,7 @@ class RoomGetCreateAPIView(ListCreateAPIView):
         room = Room.objects.create(
             leader=User.objects.get(id=leader),
             room_name=request.data['room_name'],
-            category=Category.objects.get(id=cate_id),
+            category=category,
             delivery_platform=request.data['delivery_platform'],
             delivery_fee=request.data['delivery_fee'],
             max_participant_num=request.data['max_participant_num'],
@@ -156,17 +154,15 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
         room = self.get_object()
         room_leader = room.leader.pk
 
-        # 채팅방 leader 와  로그인 유저가 같으면 삭제 가능
-        if user == room_leader:
-            self.destroy(request, *args, **kwargs)
-            return Response(status=status.HTTP_200_OK)
+        # 채팅방 leader 와 로그인 유저가 다르면 오류 메세지 출력
+        if user != room_leader:
+            return JsonResponse(
+                {"error_message": "This user is not room host"},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
 
-        else:
-            # 다르면 401 UNAUTHORIZED 에러 응답
-            print("------------------------------------")
-            print("Room Created User != Login User")
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
+        self.destroy(request, *args, **kwargs)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 # class CategoryListView(ListAPIView):
 #     queryset = Category.objects.all()
