@@ -1,6 +1,6 @@
 import requests
 from rest_framework import serializers
-from chat.models import Room, Category, Location
+from chat.models import Room, Category, Location, ChatUser
 from config.authentication import CustomJWTAuthentication
 
 
@@ -52,6 +52,14 @@ class RoomRetrieveSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Category
 #         fields = '__all__'
+
+class ChatUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    user_avatar = serializers.URLField(source='user.avatar')
+
+    class Meta:
+        model = ChatUser
+        fields = ['user', 'username', 'user_avatar']
 
 
 class CurLocationSerializer(serializers.ModelSerializer):
