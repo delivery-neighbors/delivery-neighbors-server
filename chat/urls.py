@@ -11,7 +11,7 @@ urlpatterns = [
     path('room/<int:pk>', views.RoomRetrieveDestroyAPIView.as_view(), name='room-sub'),
     # 카테고리 조회
     # path('category/', views.CategoryListView.as_view(), name='category-list'),
-    # 채팅방 참여 인원 조회/생성/삭제
+    # 유저 채팅방 참여
     path('room/<int:room_id>/neighbor/', views.ChatUserView.as_view(), name='chat-user'),
     # 실시간 위치 정보 입력 & 특정 채팅방에 속한 모든 유저 위치 조회
     path('room/cur_location/', views.CurrentLocationView.as_view(), name='user-location'),
