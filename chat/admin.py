@@ -1,5 +1,5 @@
 from django.contrib import admin
-from chat.models import Category, Room, ChatUser
+from chat.models import Category, Room, ChatUser, Location
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -11,9 +11,15 @@ class RoomAdmin(admin.ModelAdmin):
 
 
 class ChatUserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'room', 'user', 'created_at', 'updated_at', 'is_chat_user']
+    list_display = ['id', 'room', 'user']
+
+
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ['id', 'room', 'user']
 
 
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room, RoomAdmin)
 admin.site.register(ChatUser, ChatUserAdmin)
+admin.site.register(Location, LocationAdmin)
+
