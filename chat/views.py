@@ -15,6 +15,9 @@ from haversine import haversine, Unit
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomListSerializer
+
     def get(self, request):
         category_id = request.GET['category_id']
         print("category", category_id)
@@ -171,6 +174,7 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
 
 class ChatUserView(ListCreateAPIView, DestroyAPIView):
     queryset = ChatUser.objects.all()
+    serializer_class = ChatUserSerializer
 
     def get(self, reqeust, room_id):
         user_list = ChatUser.objects.filter(room_id=room_id)
@@ -209,6 +213,9 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
 
 class CurrentLocationView(ListCreateAPIView):
+    queryset = Location.objects.all()
+    serializer_class = CurLocationSerializer
+
     def post(self, request):
         room_id = request.data['room_id']
         user_id = CustomJWTAuthentication.authenticate(self, request)
