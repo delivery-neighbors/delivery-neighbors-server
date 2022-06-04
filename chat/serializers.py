@@ -56,10 +56,11 @@ class RoomRetrieveSerializer(serializers.ModelSerializer):
 class ChatUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     user_avatar = serializers.URLField(source='user.avatar')
+    date_joined = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = ChatUser
-        fields = ['user', 'username', 'user_avatar']
+        fields = ['user', 'username', 'user_avatar', 'date_joined']
 
 
 class CurLocationSerializer(serializers.ModelSerializer):

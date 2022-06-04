@@ -11,7 +11,7 @@ class RoomAdmin(admin.ModelAdmin):
 
 
 class ChatUserAdmin(admin.ModelAdmin):
-    list_display = ['id', 'room', 'user']
+    list_display = ['id', 'room', 'user', 'date_joined']
 
 
 class LocationAdmin(admin.ModelAdmin):
