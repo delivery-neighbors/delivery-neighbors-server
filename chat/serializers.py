@@ -1,7 +1,5 @@
-import requests
 from rest_framework import serializers
 from chat.models import Room, Category, Location, ChatUser
-from config.authentication import CustomJWTAuthentication
 
 
 # 채팅방 목록(메인 화면) serializer
