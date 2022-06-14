@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -63,3 +64,8 @@ def user_review_update(request, userid, reviewid):
         )
         serializer = UserReviewSerializer(obj)
         return Response(serializer.data)
+
+
+# kakao map
+def kakao_map(request):
+    return render(request, 'LoadNameAddress.php')
