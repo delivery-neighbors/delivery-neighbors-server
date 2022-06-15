@@ -18,4 +18,6 @@ urlpatterns = [
     path('deliveryneighbors/signin/', views.UserLoginAPIView.as_view(), name='user-login'),
     path('deliveryneighbors/signout/', views.UserLogoutAPIView.as_view(), name='user-logout'),
 
+    # 사용자 주소 설정, 조회
+    path('user/location/', views.UserAddressView.as_view(), name='user-address'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
