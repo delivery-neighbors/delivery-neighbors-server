@@ -196,5 +196,6 @@ SOCIAL_OAUTH_CONFIG = {
 OPEN_BANK_CONFIG = {
     'OPENBANK_API_KEY': secrets.get_secret('OPENBANK_API_KEY'),
     "OPENBANK_REDIRECT_URI": secrets.get_secret('OPENBANK_REDIRECT_URI'),
-    "OPENBANK_SECRET_KEY": secrets.get_secret('OPENBANK_SECRET_KEY')
+    "OPENBANK_SECRET_KEY": secrets.get_secret('OPENBANK_SECRET_KEY'),
+    "OPENBANK_STATE": secrets.get_secret('OPENBANK_STATE')
 }
