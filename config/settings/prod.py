@@ -2,10 +2,13 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    '.ap-northeast-2.compute.amazonaws.com',
+    '.baedalius.com',
+]
 
 CSRF_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = ['http://3.38.38.248']
+CSRF_TRUSTED_ORIGINS = ['https://baedalius.com']
 
 DATABASES = {
     'default': {
