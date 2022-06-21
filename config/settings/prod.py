@@ -2,10 +2,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    '.ap-northeast-2.compute.amazonaws.com',
-    '.baedalius.com',
-]
+ALLOWED_HOSTS = ['*']
 
 CSRF_COOKIE_SECURE = False
 CSRF_TRUSTED_ORIGINS = ['https://baedalius.com']
