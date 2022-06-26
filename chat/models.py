@@ -10,6 +10,7 @@ class ChatUser(models.Model):
     # on_delete=models.CASCADE -> 참조되는 객체 삭제 시 참조하는 객체 함께 삭제
     room = models.ForeignKey('Room', on_delete=models.CASCADE)
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
+    date_joined = models.DateTimeField(auto_now_add=True)
 
 
 class Room(models.Model):
