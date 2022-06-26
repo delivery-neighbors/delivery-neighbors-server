@@ -341,3 +341,31 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
 
         except Address.DoesNotExist:
             return Response({"message": "not registered address"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserInfoUpdateView(UpdateAPIView):
+    def put(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        try:
+            user = User.objects.get(id=user_id)
+
+            # TODO 빈 값 들어왔을 때 기본 이미지로 설정하기
+
+            if user.is_active:
+                user.username = request.data['username']
+                user.avatar = request.data['avatar']
+
+                serializer = UserUpdateSerializer(user, data=request.data, partial=False)
+                serializer.is_valid(raise_exception=True)
+                self.perform_update(serializer)
+
+                return Response({"user": serializer.data}, status=status.HTTP_200_OK)
+
+            else:
+                return Response({"message": "withdrawn user"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except User.DoesNotExist:
+            return Response({"message": "user not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+
