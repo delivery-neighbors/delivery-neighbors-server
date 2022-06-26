@@ -2,9 +2,10 @@ from datetime import timedelta, datetime
 
 from django.db.models import Q
 from django.http import JsonResponse
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import *
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, filters, request
 
 from accounts.models import User
 from chat.models import Category, Room, ChatUser, Location
@@ -15,13 +16,16 @@ from haversine import haversine, Unit
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomListSerializer
+
     def get(self, request):
         category_id = request.GET['category_id']
-        print("category", category_id)
 
         request_latitude = float(request.GET['user_latitude'])
         request_longitude = float(request.GET['user_longitude'])
         request_location = (request_latitude, request_longitude)
+        request_search = request.GET['search']
 
         # filter()에 넣어줄 조건
         # 1km에 대해 위도는 0.01 차이, 경도는 0.015 차이
@@ -29,7 +33,8 @@ class RoomGetCreateAPIView(ListCreateAPIView):
         # Q 클래스 -> filter()에 넣어줄 논리 조건을 | 또는 & 사용해 조합 가능케 해줌
         condition = (
                 Q(pickup_latitude__range=(request_latitude - 0.005, request_latitude + 0.005)) &
-                Q(pickup_longitude__range=(request_longitude - 0.0075, request_longitude + 0.0075))
+                Q(pickup_longitude__range=(request_longitude - 0.0075, request_longitude + 0.0075)) &
+                Q(room_name__contains=request_search)
         )
         rooms_first_filtering = Room.objects.filter(condition)
 
@@ -171,6 +176,7 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
 
 class ChatUserView(ListCreateAPIView, DestroyAPIView):
     queryset = ChatUser.objects.all()
+    serializer_class = ChatUserSerializer
 
     def get(self, reqeust, room_id):
         user_list = ChatUser.objects.filter(room_id=room_id)
@@ -209,6 +215,9 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
 
 class CurrentLocationView(ListCreateAPIView):
+    queryset = Location.objects.all()
+    serializer_class = CurLocationSerializer
+
     def post(self, request):
         room_id = request.data['room_id']
         user_id = CustomJWTAuthentication.authenticate(self, request)
