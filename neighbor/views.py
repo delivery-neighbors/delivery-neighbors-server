@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -26,7 +26,7 @@ class ReviewListAPIView(APIView):
             'reviewList': reviewList,
         }
         serializer = ReviewSerializer(instance=data)
-        return Response(serializer.data)
+        return Response({"status": status.HTTP_200_OK, "success": "true", "data": serializer.data})
 
 
 class ReviewRetrieveAPIView(generics.RetrieveAPIView):
@@ -42,7 +42,7 @@ class UserReviewListAPIView(generics.ListAPIView):
         review = UserReview.objects.filter(user_id=userid)
         serializer = UserReviewSerializer(review, many=True)
 
-        return Response(serializer.data)
+        return Response({"status": status.HTTP_200_OK, "success": "true", "data": serializer.data})
 
 
 @api_view(('GET',))
@@ -52,14 +52,7 @@ def user_review_update(request, userid, reviewid):
         obj.count += 1
         obj.save()
         serializer = UserReviewSerializer(obj)
-        return Response(serializer.data)
+        return Response({"status": status.HTTP_200_OK, "success": "true", "data": serializer.data})
 
     except UserReview.DoesNotExist:
-        user_id = User.objects.get(id=userid)
-        review_id = Review.objects.get(id=reviewid)
-        obj = UserReview.objects.create(
-            user_id=user_id,
-            review_id=review_id
-        )
-        serializer = UserReviewSerializer(obj)
-        return Response(serializer.data)
+        return Response({"status": status.HTTP_204_NO_CONTENT, "success": "false", "message": "this review is not exist"})
