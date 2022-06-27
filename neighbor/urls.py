@@ -10,4 +10,7 @@ urlpatterns = [
     path('review/<int:pk>/', views.ReviewRetrieveAPIView.as_view()),
     path('user/<int:userid>/review/', views.UserReviewListAPIView.as_view()),
     path('user/<int:userid>/review/<int:reviewid>/', views.user_review_update),
+
+    # map
+    path('kakaomap/', views.kakao_map, name='kakao_map'),
 ]

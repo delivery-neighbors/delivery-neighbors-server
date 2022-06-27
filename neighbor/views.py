@@ -1,3 +1,5 @@
+from django.shortcuts import render
+
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -56,3 +58,9 @@ def user_review_update(request, userid, reviewid):
 
     except UserReview.DoesNotExist:
         return Response({"status": status.HTTP_204_NO_CONTENT, "success": "false", "message": "this review is not exist"})
+      
+
+# kakao map
+def kakao_map(request):
+    return render(request, 'LoadNameAddress.php')
+  
