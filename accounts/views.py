@@ -211,13 +211,13 @@ def kakao_callback(request):
     try:
         # 로그인
         user = User.objects.get(email=email)
-        social_user = SocialAccount.objects.get(user=user)
+        social_user = SocialAccount.objects.filter(user=user)
         if not social_user:  # 소셜 로그인이 아닐 경우 (자체로그인)
             return JsonResponse(
                 {"error_message": "email exists but not social user"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if social_user.provider != "kakao":  # kakao 소셜 로그인이 아닌 경우
+        if social_user[0].provider != "kakao":  # kakao 소셜 로그인이 아닌 경우
             return JsonResponse(
                 {"error_message": "no matching social type"},
                 status=status.HTTP_400_BAD_REQUEST,
