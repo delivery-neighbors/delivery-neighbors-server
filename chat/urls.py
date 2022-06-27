@@ -9,8 +9,11 @@ urlpatterns = [
     path('room/', views.RoomGetCreateAPIView.as_view(), name='room-main'),
     # 단일 채팅방 조회 & 삭제
     path('room/<int:pk>', views.RoomRetrieveDestroyAPIView.as_view(), name='room-sub'),
+    # 채팅방 키워드 검색
+    path('room/search/', views.RoomGetByKeywordView.as_view(), name='room-search'),
     # 카테고리 조회
     # path('category/', views.CategoryListView.as_view(), name='category-list'),
+
     # 유저 채팅방 참여
     path('room/<int:room_id>/neighbor/', views.ChatUserView.as_view(), name='chat-user'),
     # 실시간 위치 정보 입력 & 특정 채팅방에 속한 모든 유저 위치 조회
