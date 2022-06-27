@@ -7,6 +7,7 @@ from config.authentication import CustomJWTAuthentication
 # 채팅방 목록(메인 화면) serializer
 class RoomListSerializer(serializers.ModelSerializer):
     distance = serializers.IntegerField()
+    is_leader = serializers.BooleanField()
     leader_avatar = serializers.URLField(source='leader.avatar')
     participant_num = serializers.IntegerField()
 
@@ -14,7 +15,7 @@ class RoomListSerializer(serializers.ModelSerializer):
         model = Room
         fields = [
             'id',
-            'leader',
+            'is_leader',
             'leader_avatar',
             'room_name',
             'created_at',
