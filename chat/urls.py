@@ -18,4 +18,7 @@ urlpatterns = [
     path('room/<int:room_id>/neighbor/', views.ChatUserView.as_view(), name='chat-user'),
     # 실시간 위치 정보 입력 & 특정 채팅방에 속한 모든 유저 위치 조회
     path('room/cur_location/', views.CurrentLocationView.as_view(), name='user-location'),
+
+    # 참여중인 채팅방 조회
+    path('room/joined/', views.ChatJoinedView.as_view(), name='chat-joined'),
 ]

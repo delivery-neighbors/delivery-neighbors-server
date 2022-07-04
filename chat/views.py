@@ -9,7 +9,8 @@ from rest_framework import status, filters
 
 from accounts.models import User, Address
 from chat.models import Category, Room, ChatUser, Location
-from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer, ChatUserSerializer
+from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer, ChatUserSerializer, \
+    RoomJoinedSerializer
 from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
@@ -22,7 +23,7 @@ class RoomGetCreateAPIView(ListCreateAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        category_id = request.GET['category_id']
+        category_id = int(request.GET['category_id'])
 
         # request_latitude = float(request.GET['user_latitude'])
         # request_longitude = float(request.GET['user_longitude'])
@@ -57,7 +58,7 @@ class RoomGetCreateAPIView(ListCreateAPIView):
                                                    (room.pickup_latitude, room.pickup_longitude),
                                                    unit=Unit.METERS) < 500]
 
-            if category_id:
+            if category_id != 0:
                 category = Category.objects.get(id=category_id)
                 rooms_by_category = [room for room in rooms_within_500meters
                                      if room.category == category]
@@ -171,7 +172,7 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
 
         # RoomRetrieveSerializer 이용해
         serializer = self.serializer_class(instance=room)
-        return Response({"status":status.HTTP_200_OK, "room": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "room": serializer.data})
 
     def delete(self, request, *args, **kwargs):
         user = CustomJWTAuthentication.authenticate(self, request)
@@ -362,3 +363,61 @@ class CurrentLocationView(ListCreateAPIView):
         serializer = CurLocationSerializer(instance=cur_location_list, many=True)
 
         return Response({"status": status.HTTP_200_OK, "location_list": serializer.data})
+
+
+class ChatJoinedView(ListAPIView):
+    def get(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        rooms = ChatUser.objects.filter(user_id=user_id)
+        print("joined room", rooms.values())
+
+        joined_room = []
+
+        for i in rooms:
+            room = Room.objects.get(id=i.room_id)
+            print("room", room)
+            joined_room.append(room)
+
+        for room in joined_room:
+            room_id = room.id
+
+            if user_id == room.leader.id:
+                is_leader = True
+
+            else:
+                is_leader = False
+
+            # created_at 가공
+            now = datetime.now()
+            created_at = room.created_at
+
+            if now - created_at >= timedelta(days=7):
+                room.created_at = created_at.strftime("%b %d")
+
+            elif now - created_at >= timedelta(days=1):
+                # %a 옵션 -> datetime 객체의 요일을 짧게 출력
+                room.created_at = created_at.strftime("%a")
+
+            else:
+                # %H -> 시간을 0~23 사용해 출력, %M -> 분 출력
+                room.created_at = created_at.strftime("%H:%M")
+
+            # 1인당 배달비 계산
+            delivery_fee = room.delivery_fee
+            max_participant_num = room.max_participant_num
+            del_fee_for_person = int(delivery_fee / max_participant_num)
+            room.delivery_fee = del_fee_for_person
+
+            # 현재 채팅방 참여자 수 추출
+            participant_num = ChatUser.objects.filter(room_id=room_id).count()
+
+            # 거리, 현재 채팅방 참여자 수 정보 추가를 위해 room 객체를 dict 로 변환 뒤
+            # 해당 dict 에 participant_num key-value 추가
+            room = room.__dict__
+            room['is_leader'] = is_leader
+            room['participant_num'] = participant_num
+
+        serializer = RoomJoinedSerializer(instance=joined_room, many=True)
+
+        return Response({"status": status.HTTP_200_OK, "joined_room": serializer.data})
