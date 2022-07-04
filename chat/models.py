@@ -31,8 +31,8 @@ class Room(models.Model):
 class Location(models.Model):
     room = models.ForeignKey('Room', on_delete=models.CASCADE)
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
-    cur_latitude = models.FloatField()
-    cur_longitude = models.FloatField()
+    cur_latitude = models.DecimalField(max_digits=20, decimal_places=16)
+    cur_longitude = models.DecimalField(max_digits=20, decimal_places=16)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     # 배달 수령 장소 도착 시 is_arrived 값을 True로 바꾸어줘
