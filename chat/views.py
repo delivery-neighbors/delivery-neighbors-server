@@ -7,7 +7,7 @@ from rest_framework.generics import *
 from rest_framework.response import Response
 from rest_framework import status, filters
 
-from accounts.models import User, Address
+from accounts.models import User
 from chat.models import Category, Room, ChatUser, Location
 from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer, ChatUserSerializer, \
     RoomJoinedSerializer

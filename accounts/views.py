@@ -19,7 +19,6 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.translation import gettext_lazy
 
-from accounts.models import Address
 from accounts.serializers import *
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
@@ -27,8 +26,8 @@ from rest_framework_simplejwt.exceptions import TokenError
 from config.settings.base import SOCIAL_OAUTH_CONFIG
 from config.authentication import CustomJWTAuthentication
 
-BASE_URL = "https://baedalius.com/"  # deploy version
-# BASE_URL = "http://localhost:8000/"  # local version
+# BASE_URL = "https://baedalius.com/"  # deploy version
+BASE_URL = "http://localhost:8000/"  # local version
 
 KAKAO_CLIENT_ID = SOCIAL_OAUTH_CONFIG['KAKAO_REST_API_KEY']
 KAKAO_REDIRECT_URI = f"{BASE_URL}{SOCIAL_OAUTH_CONFIG['KAKAO_REDIRECT_URI']}"
@@ -287,78 +286,3 @@ def kakao_logout(request):
     auth.logout(request)
 
     return JsonResponse({"status": status.HTTP_200_OK, "success": "true", "data": accept.json()})
-
-
-class UserAddressView(ListCreateAPIView, DestroyAPIView):
-    def post(self, request):
-        user_id = CustomJWTAuthentication.authenticate(self, request)
-
-        addr_latitude = request.data['addr_latitude']
-        addr_longitude = request.data['addr_longitude']
-
-        try:
-            address = Address.objects.get(user_id=user_id, addr_latitude=addr_latitude, addr_longitude=addr_longitude)
-
-            return Response({"status": status.HTTP_200_OK, "success": "true", "message": "already registered address"})
-
-        except Address.DoesNotExist:
-            addr = Address.objects.create(
-                user=User.objects.get(id=user_id),
-                addr_latitude=addr_latitude,
-                addr_longitude=addr_longitude
-            )
-
-            return Response({"status": status.HTTP_201_CREATED})
-
-    def get(self, request):
-        user_id = CustomJWTAuthentication.authenticate(self, request)
-
-        addr_list = Address.objects.filter(user_id=user_id).order_by('-updated_at')
-        print("addr_list", addr_list.values())
-
-        if len(addr_list) >= 3:
-            addr_list = addr_list[:3]
-
-        serializer = UserAddressSerializer(instance=addr_list, many=True)
-
-        return Response({"status": status.HTTP_200_OK, "success": "true", "addr_list": serializer.data})
-
-    def delete(self, request):
-        user_id = CustomJWTAuthentication.authenticate(self, request)
-
-        addr_latitude = request.data['addr_latitude']
-        addr_longitude = request.data['addr_longitude']
-
-        try:
-            address = Address.objects.get(user_id=user_id, addr_latitude=addr_latitude, addr_longitude=addr_longitude)
-            address.delete()
-            return Response({"status": status.HTTP_200_OK, "success": "true"})
-
-        except Address.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": "false", "message": "not registered address"})
-
-
-class UserInfoUpdateView(UpdateAPIView):
-    def put(self, request):
-        user_id = CustomJWTAuthentication.authenticate(self, request)
-
-        try:
-            user = User.objects.get(id=user_id)
-
-            # TODO 빈 값 들어왔을 때 기본 이미지로 설정하기
-
-            if user.is_active:
-                user.username = request.data['username']
-                user.avatar = request.data['avatar']
-
-                serializer = UserUpdateSerializer(user, data=request.data, partial=False)
-                serializer.is_valid(raise_exception=True)
-                self.perform_update(serializer)
-
-                return Response({"status": status.HTTP_200_OK, "success": "true", "data": {"user": serializer.data}})
-
-            else:
-                return Response({"status": status.HTTP_400_BAD_REQUEST, "success": "false", "message": "withdrawn user"})
-
-        except User.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": "false", "message": "user not exist"})
