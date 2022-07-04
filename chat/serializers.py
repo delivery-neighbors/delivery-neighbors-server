@@ -48,6 +48,24 @@ class RoomRetrieveSerializer(serializers.ModelSerializer):
         ]
 
 
+class RoomJoinedSerializer(serializers.ModelSerializer):
+    is_leader = serializers.BooleanField()
+    leader_avatar = serializers.URLField(source='leader.avatar')
+    participant_num = serializers.IntegerField()
+
+    class Meta:
+        model = Room
+        fields = [
+            'id',
+            'is_leader',
+            'leader_avatar',
+            'room_name',
+            'created_at',
+            'participant_num',
+            'max_participant_num',
+            'delivery_fee',
+        ]
+
 # 카테고리 serializer
 # class CategoryListSerializer(serializers.ModelSerializer):
 #     class Meta:

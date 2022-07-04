@@ -41,7 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         null=False
     )
-    avatar = models.URLField(blank=True, default="http://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg")
+    avatar = models.URLField(blank=True, default="https://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg")
     date_joined = models.DateTimeField(auto_now_add=True)
 
     is_active = models.BooleanField(default=True)
@@ -61,7 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 class Address(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
-    addr_latitude = models.FloatField()
-    addr_longitude = models.FloatField()
+    addr_latitude = models.DecimalField(max_digits=20, decimal_places=16)
+    addr_longitude = models.DecimalField(max_digits=20, decimal_places=16)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
