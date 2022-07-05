@@ -45,8 +45,8 @@ class RoomGetCreateAPIView(ListCreateAPIView):
             # 즉, request 통해 받아온 위치(위도,경도)에서 +,- 0.005 (위도) / +,- 0.0075 (경도) 떨어진 곳까지 1차 필터링
             # Q 클래스 -> filter()에 넣어줄 논리 조건을 | 또는 & 사용해 조합 가능케 해줌
             condition = (
-                    Q(pickup_latitude__range=(request_latitude - 0.005, request_latitude + 0.005)) &
-                    Q(pickup_longitude__range=(request_longitude - 0.0075, request_longitude + 0.0075))
+                    Q(pickup_latitude__range=(request_latitude - Decimal(0.005), request_latitude + Decimal(0.005))) &
+                    Q(pickup_longitude__range=(request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075)))
             )
             rooms_first_filtering = Room.objects.filter(condition)
 
