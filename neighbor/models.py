@@ -13,7 +13,7 @@ class Review(models.Model):
 class UserReview(models.Model):
     review_id = models.ForeignKey(Review, on_delete=models.CASCADE)
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    count = models.IntegerField(default=1)
+    count = models.IntegerField(default=0)
 
     def __str__(self):
         return f"{self.review_id} {self.count}"

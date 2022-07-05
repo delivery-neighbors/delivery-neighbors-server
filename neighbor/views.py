@@ -77,14 +77,18 @@ class UserReviewListAPIView(generics.ListAPIView):
 
 @api_view(('GET',))
 def user_review_update(request, userid, reviewid):
+    print(userid, reviewid)
     try:
-        obj = UserReview.objects.get(user_id=userid, review_id=reviewid)
-        obj.count += 1
-        obj.save()
-        serializer = UserReviewSerializer(obj)
+        user = User.objects.get(id=userid)
+        review = Review.objects.get(id=reviewid)
+        obj = UserReview.objects.get_or_create(user_id=user, review_id=review)
+        obj[0].count += 1
+        obj[0].save()
+        serializer = UserReviewSerializer(obj[0])
+        print(obj[0])
         return Response({"status": status.HTTP_200_OK, "success": "true", "data": serializer.data})
 
-    except UserReview.DoesNotExist:
+    except Review.DoesNotExist:
         return Response({"status": status.HTTP_204_NO_CONTENT, "success": "false", "message": "this review is not exist"})
 
 
