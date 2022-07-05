@@ -33,13 +33,13 @@ class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
                 serializer.is_valid(raise_exception=True)
                 self.perform_update(serializer)
 
-                return Response({"status": status.HTTP_200_OK, "success": "true", "data": {"user": serializer.data}})
+                return Response({"status": status.HTTP_200_OK, "data": {"user": serializer.data}})
 
             else:
-                return Response({"status": status.HTTP_400_BAD_REQUEST, "success": "false", "message": "withdrawn user"})
+                return Response({"status": status.HTTP_400_BAD_REQUEST})
 
         except User.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": "false", "message": "user not exist"})
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
 
 # ver 1)
