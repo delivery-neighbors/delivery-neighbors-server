@@ -72,6 +72,7 @@ class RoomJoinedSerializer(serializers.ModelSerializer):
 #         model = Category
 #         fields = '__all__'
 
+
 class ChatUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     user_avatar = serializers.URLField(source='user.avatar')

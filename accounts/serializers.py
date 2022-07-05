@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from accounts.models import User, Address
+from accounts.models import User
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -24,14 +24,3 @@ class UserLoginSerializer(serializers.ModelSerializer):
         model = User
         fields = ['email', 'password']
 
-
-class UserAddressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Address
-        fields = ['addr_latitude', 'addr_longitude']
-
-
-class UserUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['username', 'avatar']

@@ -58,10 +58,3 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         db_table = "user"
 
-
-class Address(models.Model):
-    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
-    addr_latitude = models.DecimalField(max_digits=20, decimal_places=16)
-    addr_longitude = models.DecimalField(max_digits=20, decimal_places=16)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)

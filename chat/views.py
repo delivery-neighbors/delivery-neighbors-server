@@ -1,19 +1,20 @@
 from datetime import timedelta, datetime
+from decimal import Decimal
 
 from django.db.models import Q
-from django.http import JsonResponse
-from rest_framework.filters import SearchFilter
 from rest_framework.generics import *
 from rest_framework.response import Response
-from rest_framework import status, filters
+from rest_framework import status
 
-from accounts.models import User, Address
+from accounts.models import User
 from chat.models import Category, Room, ChatUser, Location
 from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer, ChatUserSerializer, \
     RoomJoinedSerializer
 from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
+
+from neighbor.models import Address
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
@@ -24,9 +25,6 @@ class RoomGetCreateAPIView(ListCreateAPIView):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
         category_id = int(request.GET['category_id'])
-
-        # request_latitude = float(request.GET['user_latitude'])
-        # request_longitude = float(request.GET['user_longitude'])
 
         # 채팅방 목록 조회 요청 시 user_latitude,user_longitude 입력 없이
         # 유저가 가장 최근에 입력한 주소로 get
@@ -191,32 +189,31 @@ class RoomGetByKeywordView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        # request_latitude = float(request.GET['user_latitude'])
-        # request_longitude = float(request.GET['user_longitude'])
-
         # 채팅방 목록 조회 요청 시 user_latitude,user_longitude 입력 없이
         # 유저가 가장 최근에 입력한 주소로 get
         address = Address.objects.filter(user=user_id).order_by('-created_at')
 
         request_search = request.GET['keyword']
 
-        rooms_first_filtering = []
+        # 키워드 없을 때
+        if not request_search.strip():
+            return Response({"status": status.HTTP_204_NO_CONTENT})
 
+        # 사용자의 주소 데이터가 없을 때
         if not address:
-            return Response({"status": status.HTTP_200_OK, "rooms": rooms_first_filtering})
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
         else:
             request_latitude = address[0].addr_latitude
             request_longitude = address[0].addr_longitude
             request_location = (request_latitude, request_longitude)
-
             # filter()에 넣어줄 조건
             # 1km에 대해 위도는 0.01 차이, 경도는 0.015 차이
             # 즉, request 통해 받아온 위치(위도,경도)에서 +,- 0.005 (위도) / +,- 0.0075 (경도) 떨어진 곳까지 1차 필터링
             # Q 클래스 -> filter()에 넣어줄 논리 조건을 | 또는 & 사용해 조합 가능케 해줌
             condition = (
-                    Q(pickup_latitude__range=(request_latitude - 0.005, request_latitude + 0.005)) &
-                    Q(pickup_longitude__range=(request_longitude - 0.0075, request_longitude + 0.0075)) &
+                    Q(pickup_latitude__range=(request_latitude - Decimal(0.005), request_latitude + Decimal(0.005))) &
+                    Q(pickup_longitude__range=(request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075))) &
                     Q(room_name__contains=request_search)
             )
             rooms_first_filtering = Room.objects.filter(condition)
@@ -307,7 +304,7 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
             return Response({"status": status.HTTP_201_CREATED})
         except Room.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "message": "room does not exist"})
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
     def delete(self, request, room_id):
         user_pk = CustomJWTAuthentication.authenticate(self, request)
@@ -315,10 +312,10 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
         try:
             chat_user = ChatUser.objects.get(room_id=room_id, user_id=user_pk)
             chat_user.delete()
-            return Response(status=status.HTTP_200_OK)
+            return Response({"status":status.HTTP_200_OK})
 
         except ChatUser.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "message": "user not included in this room"})
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
 
 class CurrentLocationView(ListCreateAPIView):
@@ -342,7 +339,7 @@ class CurrentLocationView(ListCreateAPIView):
                 cur_location_obj.cur_latitude = cur_latitude
                 cur_location_obj.cur_longitude = cur_longitude
                 cur_location_obj.save()
-                return Response({"status": status.HTTP_200_OK, "message": "current_location_updated"})
+                return Response({"status": status.HTTP_200_OK})
 
             except Location.DoesNotExist:
 
@@ -352,10 +349,10 @@ class CurrentLocationView(ListCreateAPIView):
                     cur_latitude=cur_latitude,
                     cur_longitude=cur_longitude
                 )
-                return Response({"status": status.HTTP_201_CREATED, "message": "current_location_created"})
+                return Response({"status": status.HTTP_201_CREATED})
 
         except ChatUser.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "message": "user not included in this room"})
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
     def get(self, request):
         room_id = int(request.GET['room_id'])
