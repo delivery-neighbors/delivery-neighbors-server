@@ -14,7 +14,7 @@ from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
 
-from neighbor.models import Address
+from neighbor.models import Address, Search
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
@@ -188,6 +188,7 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
 class RoomGetByKeywordView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
+        user = User.objects.get(id=user_id)
 
         # 채팅방 목록 조회 요청 시 user_latitude,user_longitude 입력 없이
         # 유저가 가장 최근에 입력한 주소로 get
@@ -204,6 +205,8 @@ class RoomGetByKeywordView(ListAPIView):
             return Response({"status": status.HTTP_400_BAD_REQUEST})
 
         else:
+            Search.objects.get_or_create(user=user, search_content=request_search)
+
             request_latitude = address[0].addr_latitude
             request_longitude = address[0].addr_longitude
             request_location = (request_latitude, request_longitude)
