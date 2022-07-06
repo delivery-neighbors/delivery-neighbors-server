@@ -170,7 +170,7 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
 
         # RoomRetrieveSerializer 이용해
         serializer = self.serializer_class(instance=room)
-        return Response({"status": status.HTTP_200_OK, "success": True, "room": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "room": serializer.data})
 
     def delete(self, request, *args, **kwargs):
         user = CustomJWTAuthentication.authenticate(self, request)
@@ -179,8 +179,7 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
 
         # 채팅방 leader 와 로그인 유저가 다르면 오류 메세지 출력
         if user != room_leader:
-            return Response({"status": status.HTTP_401_UNAUTHORIZED, "success": False,
-                             "message": "This user is not room host"})
+            return Response({"status": status.HTTP_401_UNAUTHORIZED, "error_message": "This user is not room host"})
 
         self.destroy(request, *args, **kwargs)
         return Response({"status": status.HTTP_200_OK})
@@ -271,7 +270,7 @@ class RoomGetByKeywordView(ListAPIView):
                 room['participant_num'] = participant_num
 
             serializer = RoomListSerializer(instance=rooms_within_500meters, many=True)
-            return Response({"status": status.HTTP_200_OK, "success": True, "rooms": serializer.data})
+            return Response({"status": status.HTTP_200_OK, "rooms": serializer.data})
 
 
 # class CategoryListView(ListAPIView):
@@ -303,9 +302,9 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
                 user=User.objects.get(id=user_pk)
             )
 
-            return Response({"status": status.HTTP_201_CREATED, "success": True})
+            return Response({"status": status.HTTP_201_CREATED})
         except Room.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": False})
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
     def delete(self, request, room_id):
         user_pk = CustomJWTAuthentication.authenticate(self, request)
@@ -313,10 +312,10 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
         try:
             chat_user = ChatUser.objects.get(room_id=room_id, user_id=user_pk)
             chat_user.delete()
-            return Response({"status": status.HTTP_200_OK, "success": True})
+            return Response({"status": status.HTTP_200_OK})
 
         except ChatUser.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": False})
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
 
 class CurrentLocationView(ListCreateAPIView):
@@ -340,7 +339,7 @@ class CurrentLocationView(ListCreateAPIView):
                 cur_location_obj.cur_latitude = cur_latitude
                 cur_location_obj.cur_longitude = cur_longitude
                 cur_location_obj.save()
-                return Response({"status": status.HTTP_200_OK, "success": True})
+                return Response({"status": status.HTTP_200_OK})
 
             except Location.DoesNotExist:
 
@@ -350,17 +349,17 @@ class CurrentLocationView(ListCreateAPIView):
                     cur_latitude=cur_latitude,
                     cur_longitude=cur_longitude
                 )
-                return Response({"status": status.HTTP_201_CREATED, "success": True})
+                return Response({"status": status.HTTP_201_CREATED})
 
         except ChatUser.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": False})
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
     def get(self, request):
         room_id = int(request.GET['room_id'])
         cur_location_list = Location.objects.filter(room_id=room_id)
         serializer = CurLocationSerializer(instance=cur_location_list, many=True)
 
-        return Response({"status": status.HTTP_200_OK, "success": True, "location_list": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "location_list": serializer.data})
 
 
 class ChatJoinedView(ListAPIView):
@@ -422,7 +421,7 @@ class ChatJoinedView(ListAPIView):
 
         serializer = RoomJoinedSerializer(instance=joined_room, many=True)
 
-        return Response({"status": status.HTTP_200_OK, "success": True, "joined_room": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "joined_room": serializer.data})
 
 
 class ChatDoneView(RetrieveAPIView):
@@ -440,7 +439,7 @@ class ChatDoneView(RetrieveAPIView):
 
             chat_user.save()
 
-            return Response({"status": status.HTTP_200_OK, "success": True})
+            return Response({"status": status.HTTP_200_OK})
 
         except ChatUser.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": False})
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
