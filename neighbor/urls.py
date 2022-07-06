@@ -18,6 +18,7 @@ urlpatterns = [
     # map
     path('kakaomap/', views.kakao_map, name='kakao_map'),
 
-    # 검색어 조회
+    # 최근 검색어 조회, 삭제
     path('user/search/', views.UserRecentSearchView.as_view()),
+    path('user/search/<int:pk>/', views.UserSearchDestroyAPIView.as_view()),
 ]

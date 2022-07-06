@@ -155,3 +155,15 @@ class UserRecentSearchView(ListAPIView):
 
         return Response({"status": status.HTTP_200_OK, "success": "true", "search_list": serializer.data})
 
+
+class UserSearchDestroyAPIView(DestroyAPIView):
+    serializer_class = UserSearchSerializer
+
+    def get_queryset(self):
+        return Search.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object(*args)
+        instance.delete()
+        return Response({"status": status.HTTP_204_NO_CONTENT})
+
