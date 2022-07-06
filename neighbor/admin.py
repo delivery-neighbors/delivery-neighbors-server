@@ -26,7 +26,7 @@ class UserReviewAdmin(admin.ModelAdmin):
 
 
 class AddressAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'addr_latitude', 'addr_longitude']
+    list_display = ['id', 'user', 'addr_latitude', 'addr_longitude', 'created_at', 'updated_at']
 
 
 admin.site.register(User, UserAdmin)

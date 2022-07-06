@@ -102,6 +102,12 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
         try:
             address = Address.objects.get(user_id=user_id, addr_latitude=addr_latitude, addr_longitude=addr_longitude)
 
+            # 이미 등록된 주소면 updated_at 최신화
+            updated_at = address.updated_at
+            print("update time", updated_at)
+
+            address.save()
+
             return Response({"status": status.HTTP_200_OK, "success": "true", "message": "already registered address"})
 
         except Address.DoesNotExist:

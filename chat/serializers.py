@@ -83,6 +83,12 @@ class ChatUserSerializer(serializers.ModelSerializer):
         fields = ['user', 'username', 'user_avatar', 'date_joined']
 
 
+class ChatUserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatUser
+        fields = ['is_active']
+
+
 class CurLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
