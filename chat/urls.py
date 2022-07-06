@@ -21,4 +21,6 @@ urlpatterns = [
 
     # 참여중인 채팅방 조회
     path('room/joined/', views.ChatJoinedView.as_view(), name='chat-joined'),
+    # 채팅방 거래 완료 ; 거래 상태 변경(is_active=False)
+    path('room/<int:room_id>/done/', views.ChatDoneView.as_view(), name='chat-done'),
 ]

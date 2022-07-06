@@ -315,7 +315,7 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
         try:
             chat_user = ChatUser.objects.get(room_id=room_id, user_id=user_pk)
             chat_user.delete()
-            return Response({"status":status.HTTP_200_OK})
+            return Response({"status": status.HTTP_200_OK})
 
         except ChatUser.DoesNotExist:
             return Response({"status": status.HTTP_400_BAD_REQUEST})
@@ -369,8 +369,12 @@ class ChatJoinedView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        rooms = ChatUser.objects.filter(user_id=user_id)
-        print("joined room", rooms.values())
+        room_status = request.GET['status']
+
+        if room_status == "active":
+            rooms = ChatUser.objects.filter(user_id=user_id, is_active=True)
+        elif room_status == "inactive":
+            rooms = ChatUser.objects.filter(user_id=user_id, is_active=False)
 
         joined_room = []
 
@@ -421,3 +425,24 @@ class ChatJoinedView(ListAPIView):
         serializer = RoomJoinedSerializer(instance=joined_room, many=True)
 
         return Response({"status": status.HTTP_200_OK, "joined_room": serializer.data})
+
+
+class ChatDoneView(RetrieveAPIView):
+    queryset = ChatUser.objects.all()
+
+    # 방 번호 전달 받아 user_id, room_id 로 ChatUser 객체 조회 후 상태(is_active) 변경
+    def get(self, request, room_id):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        try:
+            chat_user = ChatUser.objects.get(user_id=user_id, room_id=room_id)
+            print("chat_user", chat_user.is_active)
+
+            chat_user.is_active = False
+
+            chat_user.save()
+
+            return Response({"status": status.HTTP_200_OK})
+
+        except ChatUser.DoesNotExist:
+            return Response({"status": status.HTTP_400_BAD_REQUEST})

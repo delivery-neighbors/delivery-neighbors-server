@@ -11,6 +11,9 @@ class ChatUser(models.Model):
     room = models.ForeignKey('Room', on_delete=models.CASCADE)
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     date_joined = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+    # 참여중인 채팅방에서 나오면 아예 데이터가 삭제되므로 BooleanField로 충분
 
 
 class Room(models.Model):

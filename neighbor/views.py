@@ -102,6 +102,12 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
         try:
             address = Address.objects.get(user_id=user_id, addr_latitude=addr_latitude, addr_longitude=addr_longitude)
 
+            # 이미 등록된 주소면 updated_at 최신화
+            updated_at = address.updated_at
+            print("update time", updated_at)
+
+            address.save()
+
             return Response({"status": status.HTTP_200_OK, "success": "true", "message": "already registered address"})
 
         except Address.DoesNotExist:
@@ -129,16 +135,19 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
     def delete(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        addr_latitude = request.data['addr_latitude']
-        addr_longitude = request.data['addr_longitude']
+        # addr_latitude = request.data['addr_latitude']
+        # addr_longitude = request.data['addr_longitude']
+        addr_id = request.data['addr_id']
 
         try:
-            address = Address.objects.get(user_id=user_id, addr_latitude=addr_latitude, addr_longitude=addr_longitude)
+            address = Address.objects.get(id=addr_id)
             address.delete()
             return Response({"status": status.HTTP_200_OK, "success": "true"})
 
         except Address.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": "false", "message": "not registered address"})
+            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": "false", "message": "not registered "
+                                                                                                   "address"})
+
 
 
 # kakao map
