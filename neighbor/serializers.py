@@ -45,4 +45,4 @@ class UserSearchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Search
-        fields = ['search_content', 'created_at']
+        fields = ['id', 'search_content', 'created_at']

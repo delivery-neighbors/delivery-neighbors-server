@@ -150,9 +150,7 @@ class UserRecentSearchView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        search_list = Search.objects.filter(user=user_id).order_by('-created_at')
-        if len(search_list) > 10:
-            search_list = search_list[:10]
+        search_list = Search.objects.filter(user=user_id).order_by('-created_at')[:10]
         serializer = UserSearchSerializer(instance=search_list, many=True)
 
         return Response({"status": status.HTTP_200_OK, "success": "true", "search_list": serializer.data})
