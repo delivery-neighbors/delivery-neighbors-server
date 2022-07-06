@@ -2,15 +2,15 @@ from django.shortcuts import render
 
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
 from config.authentication import CustomJWTAuthentication
-from neighbor.models import Review, UserReview, Address
+from neighbor.models import Review, UserReview, Address, Search
 from neighbor.serializers import ReviewSerializer, UserSerializer, UserReviewSerializer, ReviewRetrieveSerializer, \
-    UserAddressSerializer, UserUpdateSerializer
+    UserAddressSerializer, UserUpdateSerializer, UserSearchSerializer
 
 
 class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
@@ -140,7 +140,20 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
         except Address.DoesNotExist:
             return Response({"status": status.HTTP_400_BAD_REQUEST, "success": "false", "message": "not registered address"})
 
+
 # kakao map
 def kakao_map(request):
     return render(request, 'LoadNameAddress.php')
-  
+
+
+class UserRecentSearchView(ListAPIView):
+    def get(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        search_list = Search.objects.filter(user=user_id).order_by('-created_at')
+        if len(search_list) > 10:
+            search_list = search_list[:10]
+        serializer = UserSearchSerializer(instance=search_list, many=True)
+
+        return Response({"status": status.HTTP_200_OK, "success": "true", "search_list": serializer.data})
+
