@@ -14,7 +14,7 @@ from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
 
-from neighbor.models import Address
+from neighbor.models import Address, Search
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
@@ -188,6 +188,7 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
 class RoomGetByKeywordView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
+        user = User.objects.get(id=user_id)
 
         # 채팅방 목록 조회 요청 시 user_latitude,user_longitude 입력 없이
         # 유저가 가장 최근에 입력한 주소로 get
@@ -204,6 +205,8 @@ class RoomGetByKeywordView(ListAPIView):
             return Response({"status": status.HTTP_400_BAD_REQUEST})
 
         else:
+            Search.objects.get_or_create(user=user, search_content=request_search)
+
             request_latitude = address[0].addr_latitude
             request_longitude = address[0].addr_longitude
             request_location = (request_latitude, request_longitude)
@@ -291,20 +294,25 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
     def post(self, request, room_id):
         # path-variable <int:room_id>로 받아온 채팅방 인덱스 통해 Room 객체 get
-        try:
-            room = Room.objects.get(id=room_id)
-            # 로그인 유저 pk
-            user_pk = CustomJWTAuthentication.authenticate(self, request)
+        room = Room.objects.get(id=room_id)
+        # 로그인 유저 pk
+        user_pk = CustomJWTAuthentication.authenticate(self, request)
 
+        try:
+            chat_user = ChatUser.objects.get(user_id=user_pk, room_id=room_id)
+            return Response({"status": status.HTTP_200_OK})
+
+        except ChatUser.DoesNotExist:
             # serializer 없이 직접 생성
+            if len(ChatUser.objects.filter(room=room)) >= room.max_participant_num:
+                return Response({"status": status.HTTP_403_FORBIDDEN})
+
             ChatUser.objects.create(
                 room=room,
                 user=User.objects.get(id=user_pk)
             )
 
-            return Response({"status": status.HTTP_201_CREATED})
-        except Room.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST})
+        return Response({"status": status.HTTP_201_CREATED})
 
     def delete(self, request, room_id):
         user_pk = CustomJWTAuthentication.authenticate(self, request)
@@ -312,7 +320,7 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
         try:
             chat_user = ChatUser.objects.get(room_id=room_id, user_id=user_pk)
             chat_user.delete()
-            return Response({"status":status.HTTP_200_OK})
+            return Response({"status": status.HTTP_200_OK})
 
         except ChatUser.DoesNotExist:
             return Response({"status": status.HTTP_400_BAD_REQUEST})
@@ -366,8 +374,12 @@ class ChatJoinedView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        rooms = ChatUser.objects.filter(user_id=user_id)
-        print("joined room", rooms.values())
+        room_status = request.GET['status']
+
+        if room_status == "active":
+            rooms = ChatUser.objects.filter(user_id=user_id, is_active=True)
+        elif room_status == "inactive":
+            rooms = ChatUser.objects.filter(user_id=user_id, is_active=False)
 
         joined_room = []
 
@@ -418,3 +430,24 @@ class ChatJoinedView(ListAPIView):
         serializer = RoomJoinedSerializer(instance=joined_room, many=True)
 
         return Response({"status": status.HTTP_200_OK, "joined_room": serializer.data})
+
+
+class ChatDoneView(RetrieveAPIView):
+    queryset = ChatUser.objects.all()
+
+    # 방 번호 전달 받아 user_id, room_id 로 ChatUser 객체 조회 후 상태(is_active) 변경
+    def get(self, request, room_id):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        try:
+            chat_user = ChatUser.objects.get(user_id=user_id, room_id=room_id)
+            print("chat_user", chat_user.is_active)
+
+            chat_user.is_active = False
+
+            chat_user.save()
+
+            return Response({"status": status.HTTP_200_OK})
+
+        except ChatUser.DoesNotExist:
+            return Response({"status": status.HTTP_400_BAD_REQUEST})

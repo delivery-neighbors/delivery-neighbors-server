@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from accounts.models import User
-from neighbor.models import Review, UserReview, Address
+from neighbor.models import Review, UserReview, Address, Search
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,16 +25,24 @@ class UserReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserReview
-        fields = ['review', 'count']
+        fields = ['id', 'review', 'count']
 
 
 class UserAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ['addr_latitude', 'addr_longitude']
+        fields = ['id', 'addr_latitude', 'addr_longitude']
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'avatar']
+
+
+class UserSearchSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
+    class Meta:
+        model = Search
+        fields = ['id', 'search_content', 'created_at']
