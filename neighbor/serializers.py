@@ -25,7 +25,7 @@ class UserReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserReview
-        fields = ['review', 'count']
+        fields = ['id', 'review', 'count']
 
 
 class UserAddressSerializer(serializers.ModelSerializer):
