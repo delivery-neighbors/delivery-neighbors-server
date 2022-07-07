@@ -132,20 +132,15 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
 
         return Response({"status": status.HTTP_200_OK, "addr_list": serializer.data})
 
-    def delete(self, request):
-        user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        # addr_latitude = request.data['addr_latitude']
-        # addr_longitude = request.data['addr_longitude']
-        addr_id = request.data['addr_id']
+class UserAddressDestroyView(DestroyAPIView):
+    queryset = Address.objects.all()
+    serializer_class = UserAddressSerializer
 
-        try:
-            address = Address.objects.get(id=addr_id)
-            address.delete()
-            return Response({"status": status.HTTP_200_OK})
-
-        except Address.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST})
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object(*args)
+        instance.delete()
+        return Response({"status": status.HTTP_204_NO_CONTENT})
 
 
 # kakao map
