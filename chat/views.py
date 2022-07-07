@@ -299,6 +299,9 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
             # 로그인 유저 pk
             user_pk = CustomJWTAuthentication.authenticate(self, request)
 
+            if len(ChatUser.objects.filter(room=room)) >= room.max_participant_num:
+                return Response({"status": status.HTTP_403_FORBIDDEN})
+
             # serializer 없이 직접 생성
             ChatUser.objects.create(
                 room=room,
