@@ -2,15 +2,15 @@ from django.shortcuts import render
 
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
 from config.authentication import CustomJWTAuthentication
-from neighbor.models import Review, UserReview, Address
+from neighbor.models import Review, UserReview, Address, Search
 from neighbor.serializers import ReviewSerializer, UserSerializer, UserReviewSerializer, ReviewRetrieveSerializer, \
-    UserAddressSerializer, UserUpdateSerializer
+    UserAddressSerializer, UserUpdateSerializer, UserSearchSerializer
 
 
 class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
@@ -56,7 +56,7 @@ class ReviewListAPIView(APIView):
             'reviewList': reviewList,
         }
         serializer = ReviewSerializer(instance=data)
-        return Response({"status": status.HTTP_200_OK, "success": "true", "data": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "data": serializer.data})
 
 
 class ReviewRetrieveAPIView(generics.RetrieveAPIView):
@@ -72,7 +72,7 @@ class UserReviewListAPIView(generics.ListAPIView):
         review = UserReview.objects.filter(user_id=userid)
         serializer = UserReviewSerializer(review, many=True)
 
-        return Response({"status": status.HTTP_200_OK, "success": "true", "data": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "data": serializer.data})
 
 
 @api_view(('GET',))
@@ -86,10 +86,10 @@ def user_review_update(request, userid, reviewid):
         obj[0].save()
         serializer = UserReviewSerializer(obj[0])
         print(obj[0])
-        return Response({"status": status.HTTP_200_OK, "success": "true", "data": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "data": serializer.data})
 
     except Review.DoesNotExist:
-        return Response({"status": status.HTTP_204_NO_CONTENT, "success": "false", "message": "this review is not exist"})
+        return Response({"status": status.HTTP_204_NO_CONTENT})
 
 
 class UserAddressView(ListCreateAPIView, DestroyAPIView):
@@ -108,7 +108,7 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
 
             address.save()
 
-            return Response({"status": status.HTTP_200_OK, "success": "true", "message": "already registered address"})
+            return Response({"status": status.HTTP_200_OK})
 
         except Address.DoesNotExist:
             addr = Address.objects.create(
@@ -130,26 +130,42 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
 
         serializer = UserAddressSerializer(instance=addr_list, many=True)
 
-        return Response({"status": status.HTTP_200_OK, "success": "true", "addr_list": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "addr_list": serializer.data})
 
-    def delete(self, request):
-        user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        # addr_latitude = request.data['addr_latitude']
-        # addr_longitude = request.data['addr_longitude']
-        addr_id = request.data['addr_id']
+class UserAddressDestroyView(DestroyAPIView):
+    queryset = Address.objects.all()
+    serializer_class = UserAddressSerializer
 
-        try:
-            address = Address.objects.get(id=addr_id)
-            address.delete()
-            return Response({"status": status.HTTP_200_OK, "success": "true"})
-
-        except Address.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": "false", "message": "not registered "
-                                                                                                   "address"})
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object(*args)
+        instance.delete()
+        return Response({"status": status.HTTP_204_NO_CONTENT})
 
 
 # kakao map
 def kakao_map(request):
     return render(request, 'LoadNameAddress.php')
-  
+
+
+class UserRecentSearchView(ListAPIView):
+    def get(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        search_list = Search.objects.filter(user=user_id).order_by('-created_at')[:10]
+        serializer = UserSearchSerializer(instance=search_list, many=True)
+
+        return Response({"status": status.HTTP_200_OK, "search_list": serializer.data})
+
+
+class UserSearchDestroyAPIView(DestroyAPIView):
+    serializer_class = UserSearchSerializer
+
+    def get_queryset(self):
+        return Search.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object(*args)
+        instance.delete()
+        return Response({"status": status.HTTP_204_NO_CONTENT})
+
