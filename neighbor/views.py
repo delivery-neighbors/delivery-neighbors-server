@@ -56,7 +56,7 @@ class ReviewListAPIView(APIView):
             'reviewList': reviewList,
         }
         serializer = ReviewSerializer(instance=data)
-        return Response({"status": status.HTTP_200_OK, "success": "true", "data": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "data": serializer.data})
 
 
 class ReviewRetrieveAPIView(generics.RetrieveAPIView):
@@ -72,7 +72,7 @@ class UserReviewListAPIView(generics.ListAPIView):
         review = UserReview.objects.filter(user_id=userid)
         serializer = UserReviewSerializer(review, many=True)
 
-        return Response({"status": status.HTTP_200_OK, "success": "true", "data": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "data": serializer.data})
 
 
 @api_view(('GET',))
@@ -86,10 +86,10 @@ def user_review_update(request, userid, reviewid):
         obj[0].save()
         serializer = UserReviewSerializer(obj[0])
         print(obj[0])
-        return Response({"status": status.HTTP_200_OK, "success": "true", "data": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "data": serializer.data})
 
     except Review.DoesNotExist:
-        return Response({"status": status.HTTP_204_NO_CONTENT, "success": "false", "message": "this review is not exist"})
+        return Response({"status": status.HTTP_204_NO_CONTENT})
 
 
 class UserAddressView(ListCreateAPIView, DestroyAPIView):
@@ -108,7 +108,7 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
 
             address.save()
 
-            return Response({"status": status.HTTP_200_OK, "success": "true", "message": "already registered address"})
+            return Response({"status": status.HTTP_200_OK})
 
         except Address.DoesNotExist:
             addr = Address.objects.create(
@@ -130,7 +130,7 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
 
         serializer = UserAddressSerializer(instance=addr_list, many=True)
 
-        return Response({"status": status.HTTP_200_OK, "success": "true", "addr_list": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "addr_list": serializer.data})
 
     def delete(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
@@ -142,12 +142,10 @@ class UserAddressView(ListCreateAPIView, DestroyAPIView):
         try:
             address = Address.objects.get(id=addr_id)
             address.delete()
-            return Response({"status": status.HTTP_200_OK, "success": "true"})
+            return Response({"status": status.HTTP_200_OK})
 
         except Address.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "success": "false", "message": "not registered "
-                                                                                                   "address"})
-
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
 
 # kakao map
@@ -162,7 +160,7 @@ class UserRecentSearchView(ListAPIView):
         search_list = Search.objects.filter(user=user_id).order_by('-created_at')[:10]
         serializer = UserSearchSerializer(instance=search_list, many=True)
 
-        return Response({"status": status.HTTP_200_OK, "success": "true", "search_list": serializer.data})
+        return Response({"status": status.HTTP_200_OK, "search_list": serializer.data})
 
 
 class UserSearchDestroyAPIView(DestroyAPIView):
