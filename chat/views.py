@@ -294,31 +294,25 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
     def post(self, request, room_id):
         # path-variable <int:room_id>로 받아온 채팅방 인덱스 통해 Room 객체 get
+        room = Room.objects.get(id=room_id)
+        # 로그인 유저 pk
+        user_pk = CustomJWTAuthentication.authenticate(self, request)
+
         try:
-            room = Room.objects.get(id=room_id)
-            # 로그인 유저 pk
-            user_pk = CustomJWTAuthentication.authenticate(self, request)
+            chat_user = ChatUser.objects.get(user_id=user_pk, room_id=room_id)
+            return Response({"status": status.HTTP_200_OK})
 
-
-            try:
-                chat_user = ChatUser.objects.get(user_id=user_pk, room_id=room_id)
-                print("chat_user", chat_user)
-                return Response({"status": status.HTTP_200_OK})
-
-            except ChatUser.DoesNotExist:
-                # serializer 없이 직접 생성
-               
-                ChatUser.objects.create(
-                    room=room,
-                    user=User.objects.get(id=user_pk)
-                )
-
+        except ChatUser.DoesNotExist:
+            # serializer 없이 직접 생성
             if len(ChatUser.objects.filter(room=room)) >= room.max_participant_num:
                 return Response({"status": status.HTTP_403_FORBIDDEN})
 
-            return Response({"status": status.HTTP_201_CREATED})
-        except Room.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST})
+            ChatUser.objects.create(
+                room=room,
+                user=User.objects.get(id=user_pk)
+            )
+
+        return Response({"status": status.HTTP_201_CREATED})
 
     def delete(self, request, room_id):
         user_pk = CustomJWTAuthentication.authenticate(self, request)
