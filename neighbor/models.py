@@ -27,6 +27,11 @@ class UserReview(models.Model):
         ]
 
 
+class ChatUserReview(models.Model):
+    chat_user = models.ForeignKey('chat.ChatUser', on_delete=models.CASCADE)
+    writer = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
+
+
 class Address(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     addr_latitude = models.DecimalField(max_digits=20, decimal_places=16)

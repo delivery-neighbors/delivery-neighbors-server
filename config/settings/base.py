@@ -63,6 +63,9 @@ INSTALLED_APPS = [
 
     # api 문서 자동화
     'drf_yasg',
+
+    # 스케줄러
+    'django_apscheduler',
 ]
 
 MIDDLEWARE = [
@@ -139,7 +142,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Media
-MEDIA_ROOT = os.path.join(BASE_DIR, '../../media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 # Default primary key field type
@@ -191,3 +194,7 @@ SOCIAL_OAUTH_CONFIG = {
     "KAKAO_REDIRECT_URI": secrets.get_secret('KAKAO_REDIRECT_URI'),
     "KAKAO_SECRET_KEY": secrets.get_secret('KAKAO_SECRET_KEY')
 }
+
+# django-jobs
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"  # Default
+SCHEDULER_DEFAULT = True
