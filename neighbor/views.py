@@ -1,10 +1,20 @@
+from datetime import datetime
+
+import ntpath
+
+import os
+from django.db.models import Count
+from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils.dateformat import DateFormat
+from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from wordcloud import WordCloud
 
 from accounts.models import User
 from chat.models import ChatUser
@@ -12,6 +22,9 @@ from config.authentication import CustomJWTAuthentication
 from neighbor.models import Review, UserReview, Address, Search, ChatUserReview
 from neighbor.serializers import ReviewSerializer, UserSerializer, UserReviewSerializer, ReviewRetrieveSerializer, \
     UserAddressSerializer, UserUpdateSerializer, UserSearchSerializer
+
+# BASE_URL = "https://baedalius.com/"  # deploy version
+BASE_URL = "http://localhost:8000/"  # local version
 
 
 class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
@@ -201,3 +214,19 @@ class UserSearchDestroyAPIView(DestroyAPIView):
         instance = self.get_object(*args)
         instance.delete()
         return Response({"status": status.HTTP_204_NO_CONTENT})
+
+
+@csrf_exempt
+def Top10_SearchedAPIView(request):
+    files_path = "./media/images/wordcloud/"
+    file_name_and_time_lst = []
+
+    file_list = os.listdir(files_path)
+    for f_name in file_list:
+        written_time = os.path.getctime(f"{files_path}{f_name}")
+        file_name_and_time_lst.append((f_name, written_time))
+    sorted_file_lst = sorted(file_name_and_time_lst, key=lambda x: x[1], reverse=True)
+    recent_file = sorted_file_lst[0]
+    recent_file_name = recent_file[0]
+    return JsonResponse({"status": status.HTTP_200_OK, "wordcloud_url": f"{BASE_URL}media/images/wordcloud/{recent_file_name}"})
+
