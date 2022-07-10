@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from accounts.models import User
-from neighbor.models import Review, UserReview
+from neighbor.models import Review, UserReview, Address, Search
 
 
 class UserReviewInline(admin.TabularInline):
@@ -25,6 +25,16 @@ class UserReviewAdmin(admin.ModelAdmin):
     ordering = ('-user_id', '-review_id', )
 
 
+class AddressAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'addr_latitude', 'addr_longitude', 'created_at', 'updated_at']
+
+
+class SearchAdmin(admin.ModelAdmin):
+    list_display = ['user', 'search_content', 'created_at', 'updated_at']
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(UserReview, UserReviewAdmin)
+admin.site.register(Address, AddressAdmin)
+admin.site.register(Search, SearchAdmin)

@@ -5,7 +5,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CSRF_COOKIE_SECURE = False
-CSRF_TRUSTED_ORIGINS = ['http://3.38.38.248']
+CSRF_TRUSTED_ORIGINS = ['https://baedalius.com']
 
 DATABASES = {
     'default': {

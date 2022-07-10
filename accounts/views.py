@@ -24,8 +24,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
 
 from config.settings.base import SOCIAL_OAUTH_CONFIG
+from config.authentication import CustomJWTAuthentication
 
-# BASE_URL = "http://3.38.38.248/"  # deploy version
+# BASE_URL = "https://baedalius.com/"  # deploy version
 BASE_URL = "http://localhost:8000/"  # local version
 
 KAKAO_CLIENT_ID = SOCIAL_OAUTH_CONFIG['KAKAO_REST_API_KEY']
@@ -64,11 +65,11 @@ class UserCreateAPIView(CreateAPIView):
             access = str(token.access_token)
 
             return JsonResponse(
-                {"message": "USER CREATE SUCCESS", 'user': user.pk, 'access': access, 'refresh': refresh})
+                {"status": status.HTTP_201_CREATED, "data": {'user': user.pk, 'access': access, 'refresh': refresh}})
 
         else:
             print(serializer.errors)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
 
 class EmailSendView(GenericAPIView):
@@ -86,7 +87,7 @@ class EmailSendView(GenericAPIView):
         mail_to = request.data['email']
         send_mail(mail_title, message, None, [mail_to], fail_silently=False)
 
-        return JsonResponse({"message": "EMAIL SEND SUCCESS", "random_num": random_num})
+        return JsonResponse({"status": status.HTTP_200_OK, "data": {"random_num": random_num}})
 
 
 class EmailVerifyView(GenericAPIView):
@@ -97,9 +98,9 @@ class EmailVerifyView(GenericAPIView):
         if request.data['email'] in authenticate_num_dict and \
                 authenticate_num_dict[request.data['email']] == request.data['random_num']:
             authenticate_num_dict.pop(request.data['email'])
-            return Response({"message": "EMAIL VERIFY SUCCESS", "email": request.data['email']})
+            return Response({"status": status.HTTP_200_OK, "data": {"email": request.data['email']}})
         else:
-            return Response({"message": "EMAIL VERIFY FAIL"})
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
 
 class UserLoginAPIView(GenericAPIView):
@@ -120,21 +121,19 @@ class UserLoginAPIView(GenericAPIView):
                 refresh = str(token)
                 access = str(token.access_token)
 
-                return JsonResponse(
-                    {'user': user.pk, 'refresh': refresh, 'access': access})  # 성공메세지
+                return JsonResponse({"status": status.HTTP_201_CREATED, "data": {'user': user.pk, 'refresh': refresh, 'access': access}})  # 성공메세지
             else:
-                return JsonResponse({"error_message": "wrong password"})  # 에러메세지
+                return JsonResponse(
+                    {"status": status.HTTP_400_BAD_REQUEST})  # 에러메세지
 
         except User.DoesNotExist:
-            return JsonResponse({"error_message": "user not found for this email"})  # 에러메세지 2
+            return JsonResponse(
+                {"status": status.HTTP_401_UNAUTHORIZED})  # 에러메세지 2
 
 
 class UserLogoutAPIView(APIView):
     def post(self, request):
-        response = Response(
-            {'message': "Successfully logged out"},
-            status=status.HTTP_200_OK,
-        )
+        response = Response({"status": status.HTTP_200_OK})
 
         if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
             try:
@@ -142,26 +141,23 @@ class UserLogoutAPIView(APIView):
                 token.blacklist()
 
             except KeyError:
-                response.data = {'message': "Refresh token was not included in request data"}
+                response.data = {"status": status.HTTP_400_BAD_REQUEST}
                 response.status_code = status.HTTP_401_UNAUTHORIZED
             except (TokenError, AttributeError, TypeError) as error:
                 if hasattr(error, 'args'):
                     if 'Token is blacklisted' in error.args or 'Token is invalid or expired' in error.args:
-                        response.data = {'message': gettext_lazy(error.args[0])}
-                        response.status_code = status.HTTP_401_UNAUTHORIZED
+                        response.data = {"status": status.HTTP_401_UNAUTHORIZED}
                     else:
-                        response.data = {'message': "An error has occurred"}
-                        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                        response.data = {"status": status.HTTP_500_INTERNAL_SERVER_ERROR}
                 else:
-                    response.data = {'message': "An error has occurred"}
-                    response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                    response.data = {"status": status.HTTP_500_INTERNAL_SERVER_ERROR}
         return response
 
 
 # Code Request
 @csrf_exempt
 def kakao_login(request):
-    url = "https://kauth.kakao.com/oauth/authorize?client_id={0}&redirect_uri={1}&response_type={2}"\
+    url = "https://kauth.kakao.com/oauth/authorize?client_id={0}&redirect_uri={1}&response_type={2}" \
         .format(KAKAO_CLIENT_ID, KAKAO_REDIRECT_URI, 'code')
     return redirect(url)
 
@@ -209,17 +205,12 @@ def kakao_callback(request):
     try:
         # 로그인
         user = User.objects.get(email=email)
-        social_user = SocialAccount.objects.get(user=user)
+        social_user = SocialAccount.objects.filter(user=user)
+
         if not social_user:  # 소셜 로그인이 아닐 경우 (자체로그인)
-            return JsonResponse(
-                {"error_message": "email exists but not social user"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if social_user.provider != "kakao":  # kakao 소셜 로그인이 아닌 경우
-            return JsonResponse(
-                {"error_message": "no matching social type"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return JsonResponse({"status": status.HTTP_404_NOT_FOUND})
+        if social_user[0].provider != "kakao":  # kakao 소셜 로그인이 아닌 경우
+            return JsonResponse({"status": status.HTTP_400_BAD_REQUEST})
 
         # kakao 유저 로그인
         data = {'access_token': access_token, 'code': code}
@@ -228,8 +219,7 @@ def kakao_callback(request):
         accept_status = accept.status_code
         if accept_status != 200:
             return JsonResponse(
-                {"error_message": "failed to signin"}, status=accept_status
-            )
+                {"status": accept_status})
         accept_json = accept.json()
         accept_json.pop("user", None)
 
@@ -237,7 +227,7 @@ def kakao_callback(request):
         auth.login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         print("kakao 로그인 성공!")
 
-        return JsonResponse(accept_json)
+        return JsonResponse({"status": status.HTTP_200_OK, "data": accept_json})
 
     except User.DoesNotExist:
         # 기존에 가입한 유저가 아니면 회원 가입
@@ -252,16 +242,14 @@ def kakao_callback(request):
 
         accept_status = accept.status_code
         if accept_status != 200:
-            return JsonResponse(
-                {"error_message": f"failed to signup, {accept_status}"}, status=accept_status
-            )
+            return JsonResponse({"status": accept_status})
         accept_json = accept.json()
         accept_json.pop("user", None)
 
         auth.login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         print("kakao 회원 가입 성공!")
 
-        return JsonResponse(accept_json)
+        return JsonResponse({"status": status.HTTP_200_OK, "data": accept_json})
 
 
 class KakaoLogin(SocialLoginView):
@@ -284,9 +272,7 @@ def kakao_logout(request):
     # 로그아웃 에러 예외 처리 status_code
     accept_status = accept.status_code
     if accept_status != 200:
-        return JsonResponse(
-            {"error_message": f"failed to logout, {accept_status}"}, status=accept_status
-        )
+        return JsonResponse({"status": accept_status}, status=accept_status)
     auth.logout(request)
 
-    return JsonResponse(accept.json())
+    return JsonResponse({"status": status.HTTP_200_OK, "data": accept.json()})
