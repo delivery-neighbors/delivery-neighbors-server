@@ -14,6 +14,7 @@ class ChatUser(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
     # 참여중인 채팅방에서 나오면 아예 데이터가 삭제되므로 BooleanField로 충분
+    review_status = models.BooleanField(default=False)
 
 
 class Room(models.Model):

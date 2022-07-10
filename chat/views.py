@@ -9,7 +9,7 @@ from rest_framework import status
 from accounts.models import User
 from chat.models import Category, Room, ChatUser, Location
 from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer, ChatUserSerializer, \
-    RoomJoinedSerializer
+    RoomJoinedSerializer, RoomDoneSerializer
 from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
@@ -283,11 +283,9 @@ class RoomGetByKeywordView(ListAPIView):
 
 class ChatUserView(ListCreateAPIView, DestroyAPIView):
     queryset = ChatUser.objects.all()
-    serializer_class = ChatUserSerializer
 
     def get(self, reqeust, room_id):
         user_list = ChatUser.objects.filter(room_id=room_id)
-        print("user_list", user_list)
         serializer = ChatUserSerializer(instance=user_list, many=True)
 
         return Response({"status": status.HTTP_200_OK, "users": serializer.data})
@@ -374,12 +372,7 @@ class ChatJoinedView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        room_status = request.GET['status']
-
-        if room_status == "active":
-            rooms = ChatUser.objects.filter(user_id=user_id, is_active=True)
-        elif room_status == "inactive":
-            rooms = ChatUser.objects.filter(user_id=user_id, is_active=False)
+        rooms = ChatUser.objects.filter(user_id=user_id, is_active=True)
 
         joined_room = []
 
@@ -428,6 +421,47 @@ class ChatJoinedView(ListAPIView):
             room['participant_num'] = participant_num
 
         serializer = RoomJoinedSerializer(instance=joined_room, many=True)
+
+        return Response({"status": status.HTTP_200_OK, "joined_room": serializer.data})
+
+
+class ChatDoneListView(ListAPIView):
+    def get(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        rooms = ChatUser.objects.filter(user_id=user_id, is_active=False)
+
+        joined_room = []
+
+        for i in rooms:
+            room = Room.objects.get(id=i.room_id)
+            print("room", room)
+            joined_room.append(room)
+
+        for room in joined_room:
+            room_id = room.id
+
+            if user_id == room.leader.id:
+                is_leader = True
+
+            else:
+                is_leader = False
+
+            # 현재 채팅방 참여자 수 추출
+            participant_num = ChatUser.objects.filter(room_id=room_id).count()
+
+            # 로그인 유저 해당 채팅방 리뷰 작성 완료 여부 추출
+            review_status = ChatUser.objects.get(room_id=room_id, user_id=user_id).review_status
+            print("review status", review_status)
+
+            # 거리, 현재 채팅방 참여자 수 정보 추가를 위해 room 객체를 dict 로 변환 뒤
+            # 해당 dict 에 participant_num key-value 추가
+            room = room.__dict__
+            room['is_leader'] = is_leader
+            room['participant_num'] = participant_num
+            room['review_status'] = review_status
+
+        serializer = RoomDoneSerializer(instance=joined_room, many=True)
 
         return Response({"status": status.HTTP_200_OK, "joined_room": serializer.data})
 
