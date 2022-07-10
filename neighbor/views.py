@@ -179,24 +179,5 @@ class UserSearchDestroyAPIView(DestroyAPIView):
 
 @csrf_exempt
 def Top10_SearchedAPIView(request):
-    # search_content 로 group_by 해주고, 검색어 별로 개수를 dcount 로 저장
-    top_search_instances = Search.objects.values('search_content').annotate(dcount=Count('search_content'))
-    top_search_list = list(top_search_instances.order_by('-dcount')[:10]) # Search.objects.all().values('search_content')
-    key, val = [], []
-    for i in top_search_list:
-        key.append(i['search_content'])
-        val.append(i['dcount'])
-
-    search_dict = dict(zip(key, val))
-
-    wordcloud = WordCloud(
-        font_path='./static/wordcloud/font/BMDOHYEON_ttf.ttf',
-        background_color='white',
-        width=300,
-        height=200
-    ).generate_from_frequencies(dict(search_dict))
-
-    wordcloud.to_file(f'./static/wordcloud/images/wc_{DateFormat(datetime.now()).format("YmdHi")}.jpg')
-
     return JsonResponse({"status": status.HTTP_200_OK})
 
