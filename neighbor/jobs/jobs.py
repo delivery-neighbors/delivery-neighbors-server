@@ -29,4 +29,4 @@ def schedule_api():
         height=200,
     ).generate_from_frequencies(dict(search_dict))
 
-    wordcloud.to_file(f'./static/wordcloud/images/wc_{DateFormat(datetime.now()).format("YmdHi")}.jpg')
+    wordcloud.to_file(f'./media/images/wordcloud/wc_{DateFormat(datetime.now()).format("YmdH")}.jpg')
