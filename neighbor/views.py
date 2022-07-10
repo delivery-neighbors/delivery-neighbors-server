@@ -1,10 +1,17 @@
+from datetime import datetime
+
+from django.db.models import Count
+from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils.dateformat import DateFormat
+from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from wordcloud import WordCloud
 
 from accounts.models import User
 from config.authentication import CustomJWTAuthentication
@@ -168,4 +175,28 @@ class UserSearchDestroyAPIView(DestroyAPIView):
         instance = self.get_object(*args)
         instance.delete()
         return Response({"status": status.HTTP_204_NO_CONTENT})
+
+
+@csrf_exempt
+def Top10_SearchedAPIView(request):
+    # search_content 로 group_by 해주고, 검색어 별로 개수를 dcount 로 저장
+    top_search_instances = Search.objects.values('search_content').annotate(dcount=Count('search_content'))
+    top_search_list = list(top_search_instances.order_by('-dcount')[:10]) # Search.objects.all().values('search_content')
+    key, val = [], []
+    for i in top_search_list:
+        key.append(i['search_content'])
+        val.append(i['dcount'])
+
+    search_dict = dict(zip(key, val))
+
+    wordcloud = WordCloud(
+        font_path='./static/wordcloud/font/BMDOHYEON_ttf.ttf',
+        background_color='white',
+        width=300,
+        height=200
+    ).generate_from_frequencies(dict(search_dict))
+
+    wordcloud.to_file(f'./static/wordcloud/images/wc_{DateFormat(datetime.now()).format("YmdHi")}.jpg')
+
+    return JsonResponse({"status": status.HTTP_200_OK})
 
