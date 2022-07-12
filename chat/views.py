@@ -8,8 +8,7 @@ from rest_framework import status
 
 from accounts.models import User
 from chat.models import Category, Room, ChatUser, Location
-from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer, ChatUserSerializer, \
-    RoomJoinedSerializer, RoomDoneSerializer
+from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer, ChatUserSerializer, RoomDoneSerializer
 from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
@@ -379,6 +378,11 @@ class ChatJoinedView(ListAPIView):
 
         rooms = ChatUser.objects.filter(user_id=user_id, is_active=True)
 
+        address = Address.objects.filter(user=user_id).order_by('-created_at')
+        request_latitude = address[0].addr_latitude
+        request_longitude = address[0].addr_longitude
+        request_location = (request_latitude, request_longitude)
+
         joined_room = []
 
         for i in rooms:
@@ -400,6 +404,8 @@ class ChatJoinedView(ListAPIView):
             created_at = room.created_at
 
             if now - created_at >= timedelta(days=7):
+                # strftime() -> datetime 형식화 메소드
+                # %b -> 달을 짧게 출력, %d -> 날 출력
                 room.created_at = created_at.strftime("%b %d")
 
             elif now - created_at >= timedelta(days=1):
@@ -416,6 +422,9 @@ class ChatJoinedView(ListAPIView):
             del_fee_for_person = int(delivery_fee / max_participant_num)
             room.delivery_fee = del_fee_for_person
 
+            # 거리 계산
+            distance = haversine(request_location, (room.pickup_latitude, room.pickup_longitude), unit=Unit.METERS)
+
             # 현재 채팅방 참여자 수 추출
             participant_num = ChatUser.objects.filter(room_id=room_id).count()
 
@@ -423,10 +432,10 @@ class ChatJoinedView(ListAPIView):
             # 해당 dict 에 participant_num key-value 추가
             room = room.__dict__
             room['is_leader'] = is_leader
+            room['distance'] = int(distance)
             room['participant_num'] = participant_num
 
-        serializer = RoomJoinedSerializer(instance=joined_room, many=True)
-
+        serializer = RoomListSerializer(instance=joined_room, many=True)
         return Response({"status": status.HTTP_200_OK, "joined_room": serializer.data})
 
 
