@@ -12,8 +12,7 @@ class ChatUser(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     date_joined = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_active = models.BooleanField(default=True)
-    # 참여중인 채팅방에서 나오면 아예 데이터가 삭제되므로 BooleanField로 충분
+    status = models.CharField(max_length=10, default="JOINED")  # JOINED/DELETED/DELIVERED
     review_status = models.BooleanField(default=False)
 
 

@@ -301,7 +301,7 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
         except ChatUser.DoesNotExist:
             # serializer 없이 직접 생성
-            if len(ChatUser.objects.filter(room=room)) >= room.max_participant_num:
+            if len(ChatUser.objects.filter(room=room, status="JOINED")) >= room.max_participant_num:
                 return Response({"status": status.HTTP_403_FORBIDDEN})
 
             ChatUser.objects.create(
@@ -316,11 +316,30 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
         try:
             chat_user = ChatUser.objects.get(room_id=room_id, user_id=user_pk)
-            chat_user.delete()
-            return Response({"status": status.HTTP_200_OK})
+
+            if chat_user.status == "LEAVED" or chat_user.status == "DELIVERED":
+                return Response({"status": status.HTTP_405_METHOD_NOT_ALLOWED})
+
+            else:
+                chat_user.delete()
+                return Response({"status": status.HTTP_200_OK})
 
         except ChatUser.DoesNotExist:
             return Response({"status": status.HTTP_400_BAD_REQUEST})
+
+
+class ChatListDeleteView(RetrieveAPIView):
+    def get(self, request, room_id):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        try:
+            chat_user_obj = ChatUser.objects.get(room_id=room_id, user_id=user_id)
+            chat_user_obj.status = "LEAVED"
+            chat_user_obj.save()
+            return Response({"status": status.HTTP_200_OK})
+
+        except ChatUser.DoesNotExist:
+            return Response({"status": status.HTTP_400_BAD_REQUEST})  # 아예 참가하지 않았거나 이미 나간 유저의 경우 해당 예외 발생
 
 
 class CurrentLocationView(ListCreateAPIView):
@@ -371,7 +390,7 @@ class ChatJoinedView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        rooms = ChatUser.objects.filter(user_id=user_id, is_active=True)
+        rooms = ChatUser.objects.filter(user_id=user_id, status="JOINED")
 
         address = Address.objects.filter(user=user_id).order_by('-created_at')
         request_latitude = address[0].addr_latitude
@@ -438,7 +457,7 @@ class ChatDoneListView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        rooms = ChatUser.objects.filter(user_id=user_id, is_active=False)
+        rooms = ChatUser.objects.filter(user_id=user_id, status="DELIVERED")
 
         joined_room = []
 
@@ -478,15 +497,15 @@ class ChatDoneListView(ListAPIView):
 class ChatDoneView(RetrieveAPIView):
     queryset = ChatUser.objects.all()
 
-    # 방 번호 전달 받아 user_id, room_id 로 ChatUser 객체 조회 후 상태(is_active) 변경
+    # 방 번호 전달 받아 user_id, room_id 로 ChatUser 객체 조회 후 상태(status) 변경
     def get(self, request, room_id):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
         try:
             chat_user = ChatUser.objects.get(user_id=user_id, room_id=room_id)
-            print("chat_user", chat_user.is_active)
+            print("chat_user", chat_user.status)
 
-            chat_user.is_active = False
+            chat_user.status = "DELIVERED"
 
             chat_user.save()
 
