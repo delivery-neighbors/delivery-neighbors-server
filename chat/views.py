@@ -317,7 +317,7 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
         try:
             chat_user = ChatUser.objects.get(room_id=room_id, user_id=user_pk)
 
-            if chat_user.status == "LEAVED" or chat_user.status == "DELIVERED":
+            if chat_user.status == "DELETED" or chat_user.status == "DELIVERED":
                 return Response({"status": status.HTTP_405_METHOD_NOT_ALLOWED})
 
             else:
@@ -334,7 +334,7 @@ class ChatListDeleteView(RetrieveAPIView):
 
         try:
             chat_user_obj = ChatUser.objects.get(room_id=room_id, user_id=user_id)
-            chat_user_obj.status = "LEAVED"
+            chat_user_obj.status = "DELETED"
             chat_user_obj.save()
             return Response({"status": status.HTTP_200_OK})
 
