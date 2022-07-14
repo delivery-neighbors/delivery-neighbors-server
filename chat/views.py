@@ -319,7 +319,7 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
     def delete(self, request, room_id):
         user_pk = CustomJWTAuthentication.authenticate(self, request)
-        room = Room.objects.get(room_id=room_id)
+        room = Room.objects.get(id=room_id)
 
         try:
             chat_user = ChatUser.objects.get(room_id=room_id, user_id=user_pk)
