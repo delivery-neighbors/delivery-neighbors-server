@@ -7,7 +7,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ['id', 'leader', 'room_name', 'created_at', 'is_active']
+    list_display = ['id', 'leader', 'room_name', 'created_at', 'status']
 
 
 class ChatUserAdmin(admin.ModelAdmin):

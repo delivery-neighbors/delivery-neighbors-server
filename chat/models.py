@@ -12,7 +12,8 @@ class ChatUser(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     date_joined = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=10, default="JOINED")  # JOINED/DELETED/DELIVERED
+    # JOINED(참여중)/CONFIRMED(주문 확정)/PAY_DONE(결제 완료)/DONE(수령 완료)/DELETED(목록에서 지워진 상태)
+    status = models.CharField(max_length=10, default="JOINED")
     review_status = models.BooleanField(default=False)
 
 
@@ -28,7 +29,8 @@ class Room(models.Model):
     pickup_longitude = models.DecimalField(max_digits=20, decimal_places=16)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_active = models.BooleanField(default=True)
+    # CREATED(생성됨)/CONFIRMED(주문 확정)/PAY_DONE(결제 완료)/DONE(수령 완료)
+    status = models.CharField(max_length=10, default="CREATED")
 
 
 class Location(models.Model):

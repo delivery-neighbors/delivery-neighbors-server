@@ -27,7 +27,7 @@ urlpatterns = [
     # 수령 완료한 채팅방 조회
     path('room/joined/done/', views.ChatDoneListView.as_view(), name='chat-done-list'),
 
-    # 채팅방 거래 완료 ; 거래 상태 변경(is_active=False)
+    # 채팅방 거래 완료 ; 거래 상태 변경(status=DONE)
     path('room/<int:room_id>/done/', views.ChatDoneView.as_view(), name='chat-done'),
 
     # 채팅방 목록에서 지우기
