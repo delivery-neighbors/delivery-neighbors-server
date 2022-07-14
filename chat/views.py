@@ -196,85 +196,89 @@ class RoomGetByKeywordView(ListAPIView):
 
         request_search = request.GET['keyword']
 
-        # 키워드 없을 때
-        if not request_search.strip():
-            return Response({"status": status.HTTP_204_NO_CONTENT})
-
         # 사용자의 주소 데이터가 없을 때
         if not address:
             return Response({"status": status.HTTP_400_BAD_REQUEST})
 
-        else:
-            Search.objects.get_or_create(user=user, search_content=request_search)
+        # 키워드 없을 때
+        if not request_search.strip():
+            return Response({"status": status.HTTP_204_NO_CONTENT})
 
-            request_latitude = address[0].addr_latitude
-            request_longitude = address[0].addr_longitude
-            request_location = (request_latitude, request_longitude)
-            # filter()에 넣어줄 조건
-            # 1km에 대해 위도는 0.01 차이, 경도는 0.015 차이
-            # 즉, request 통해 받아온 위치(위도,경도)에서 +,- 0.005 (위도) / +,- 0.0075 (경도) 떨어진 곳까지 1차 필터링
-            # Q 클래스 -> filter()에 넣어줄 논리 조건을 | 또는 & 사용해 조합 가능케 해줌
-            condition = (
-                    Q(pickup_latitude__range=(request_latitude - Decimal(0.005), request_latitude + Decimal(0.005))) &
-                    Q(pickup_longitude__range=(
-                    request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075))) &
-                    Q(room_name__contains=request_search)
-            )
-            rooms_first_filtering = Room.objects.filter(condition)
+        search_instance = Search.objects.filter(user=user, search_content=request_search)
 
-            # 500m 이내 채팅방 2차 필터링
-            rooms_within_500meters = [room for room in rooms_first_filtering
-                                      if haversine(request_location,
-                                                   (room.pickup_latitude, room.pickup_longitude),
-                                                   unit=Unit.METERS) < 500]
+        # 검색어가 이미 존재하는 경우 기존의 검색어를 삭제하고 재생성
+        if search_instance:
+            search_instance.delete()
 
-            for room in rooms_within_500meters:
-                room_id = room.id
+        Search.objects.create(user=user, search_content=request_search)
 
-                if user_id == room.leader.id:
-                    is_leader = True
+        request_latitude = address[0].addr_latitude
+        request_longitude = address[0].addr_longitude
+        request_location = (request_latitude, request_longitude)
+        # filter()에 넣어줄 조건
+        # 1km에 대해 위도는 0.01 차이, 경도는 0.015 차이
+        # 즉, request 통해 받아온 위치(위도,경도)에서 +,- 0.005 (위도) / +,- 0.0075 (경도) 떨어진 곳까지 1차 필터링
+        # Q 클래스 -> filter()에 넣어줄 논리 조건을 | 또는 & 사용해 조합 가능케 해줌
+        condition = (
+                Q(pickup_latitude__range=(request_latitude - Decimal(0.005), request_latitude + Decimal(0.005))) &
+                Q(pickup_longitude__range=(request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075))) &
+                Q(room_name__contains=request_search)
+        )
+        rooms_first_filtering = Room.objects.filter(condition)
 
-                else:
-                    is_leader = False
+        # 500m 이내 채팅방 2차 필터링
+        rooms_within_500meters = [room for room in rooms_first_filtering
+                                  if haversine(request_location,
+                                               (room.pickup_latitude, room.pickup_longitude),
+                                               unit=Unit.METERS) < 500]
 
-                # created_at 가공
-                now = datetime.now()
-                created_at = room.created_at
+        for room in rooms_within_500meters:
+            room_id = room.id
 
-                if now - created_at >= timedelta(days=7):
-                    # strftime() -> datetime 형식화 메소드
-                    # %b -> 달을 짧게 출력, %d -> 날 출력
-                    room.created_at = created_at.strftime("%b %d")
+            if user_id == room.leader.id:
+                is_leader = True
 
-                elif now - created_at >= timedelta(days=1):
-                    # %a 옵션 -> datetime 객체의 요일을 짧게 출력
-                    room.created_at = created_at.strftime("%a")
+            else:
+                is_leader = False
 
-                else:
-                    # %H -> 시간을 0~23 사용해 출력, %M -> 분 출력
-                    room.created_at = created_at.strftime("%H:%M")
+            # created_at 가공
+            now = datetime.now()
+            created_at = room.created_at
 
-                # 1인당 배달비 계산
-                delivery_fee = room.delivery_fee
-                max_participant_num = room.max_participant_num
-                del_fee_for_person = int(delivery_fee / max_participant_num)
-                room.delivery_fee = del_fee_for_person
+            if now - created_at >= timedelta(days=7):
+                # strftime() -> datetime 형식화 메소드
+                # %b -> 달을 짧게 출력, %d -> 날 출력
+                room.created_at = created_at.strftime("%b %d")
 
-                # 거리 계산
-                distance = haversine(request_location, (room.pickup_latitude, room.pickup_longitude), unit=Unit.METERS)
+            elif now - created_at >= timedelta(days=1):
+                # %a 옵션 -> datetime 객체의 요일을 짧게 출력
+                room.created_at = created_at.strftime("%a")
 
-                # 현재 채팅방 참여자 수 추출
-                participant_num = ChatUser.objects.filter(room_id=room_id).count()
+            else:
+                # %H -> 시간을 0~23 사용해 출력, %M -> 분 출력
+                room.created_at = created_at.strftime("%H:%M")
 
-                # 거리, 현재 채팅방 참여자 수 정보 추가를 위해 room 객체를 dict 로 변환 뒤
-                # 해당 dict 에 participant_num key-value 추가
-                room = room.__dict__
-                room['is_leader'] = is_leader
-                room['distance'] = int(distance)
-                room['participant_num'] = participant_num
+            # 1인당 배달비 계산
+            delivery_fee = room.delivery_fee
+            max_participant_num = room.max_participant_num
+            del_fee_for_person = int(delivery_fee / max_participant_num)
+            room.delivery_fee = del_fee_for_person
 
-            serializer = RoomListSerializer(instance=rooms_within_500meters, many=True)
-            return Response({"status": status.HTTP_200_OK, "rooms": serializer.data})
+            # 거리 계산
+            distance = haversine(request_location, (room.pickup_latitude, room.pickup_longitude), unit=Unit.METERS)
+
+            # 현재 채팅방 참여자 수 추출
+            participant_num = ChatUser.objects.filter(room_id=room_id).count()
+
+            # 거리, 현재 채팅방 참여자 수 정보 추가를 위해 room 객체를 dict 로 변환 뒤
+            # 해당 dict 에 participant_num key-value 추가
+            room = room.__dict__
+            room['is_leader'] = is_leader
+            room['distance'] = int(distance)
+            room['participant_num'] = participant_num
+
+        serializer = RoomListSerializer(instance=rooms_within_500meters, many=True)
+        return Response({"status": status.HTTP_200_OK, "rooms": serializer.data})
 
 
 # class CategoryListView(ListAPIView):
