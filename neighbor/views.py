@@ -112,9 +112,11 @@ class UserReviewCreateView(generics.CreateAPIView):
 
             ChatUserReview.objects.create(chat_user=chat_user, writer=login_user)
 
-            if len(ChatUserReview.objects.filter(writer=login_user, chat_user__room=room
-                                                 ).distinct().values_list('chat_user')) == room.max_participant_num - 1:
-                chat_user_obj = ChatUser.objects.get(user=login_user)
+            review_count = len(ChatUserReview.objects.filter(writer=login_user, chat_user__room=room).
+                               distinct().values_list('chat_user'))
+
+            if review_count == room.max_participant_num - 1:
+                chat_user_obj = ChatUser.objects.get(user=login_user, room=room)
                 chat_user_obj.review_status = True
                 chat_user_obj.save()
 
