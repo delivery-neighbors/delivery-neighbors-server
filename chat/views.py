@@ -9,7 +9,7 @@ from rest_framework import status
 from accounts.models import User
 from chat.models import Category, Room, ChatUser, Location
 from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer, ChatUserSerializer, \
-    RoomJoinedSerializer, RoomDoneSerializer
+    RoomDoneSerializer
 from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
@@ -46,7 +46,8 @@ class RoomGetCreateAPIView(ListCreateAPIView):
             # Q 클래스 -> filter()에 넣어줄 논리 조건을 | 또는 & 사용해 조합 가능케 해줌
             condition = (
                     Q(pickup_latitude__range=(request_latitude - Decimal(0.005), request_latitude + Decimal(0.005))) &
-                    Q(pickup_longitude__range=(request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075)))
+                    Q(pickup_longitude__range=(
+                    request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075)))
             )
             rooms_first_filtering = Room.objects.filter(condition)
 
@@ -177,9 +178,8 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
         room = self.get_object()
         room_leader = room.leader.pk
 
-        # 채팅방 leader 와 로그인 유저가 다르면 오류 메세지 출력
-        if user != room_leader:
-            return Response({"status": status.HTTP_401_UNAUTHORIZED, "error_message": "This user is not room host"})
+        if room.status != "CREATED":
+            return Response({"status": status.HTTP_405_METHOD_NOT_ALLOWED})
 
         self.destroy(request, *args, **kwargs)
         return Response({"status": status.HTTP_200_OK})
@@ -307,7 +307,7 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
         except ChatUser.DoesNotExist:
             # serializer 없이 직접 생성
-            if len(ChatUser.objects.filter(room=room)) >= room.max_participant_num:
+            if len(ChatUser.objects.filter(room=room, status="JOINED")) >= room.max_participant_num:
                 return Response({"status": status.HTTP_403_FORBIDDEN})
 
             ChatUser.objects.create(
@@ -319,10 +319,34 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
     def delete(self, request, room_id):
         user_pk = CustomJWTAuthentication.authenticate(self, request)
+        room = Room.objects.get(id=room_id)
 
         try:
             chat_user = ChatUser.objects.get(room_id=room_id, user_id=user_pk)
-            chat_user.delete()
+
+            if room.status != "CREATED":  # Room.status 가 CREATED 가 아닌 상황(주문확정, 결제완료, 수령완료)에는 채팅방 나가기 불가
+                return Response({"status": status.HTTP_405_METHOD_NOT_ALLOWED})
+
+            else:
+                chat_user.delete()
+                return Response({"status": status.HTTP_200_OK})
+
+        except ChatUser.DoesNotExist:
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
+
+
+class ChatListDeleteView(RetrieveAPIView):
+    def get(self, request, room_id):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+        room = Room.objects.get(id=room_id)
+
+        try:
+            if room.status != "DONE":  # Room.status 가 DONE 이 아니면 목록에서 지우기 불가
+                return Response({"status": status.HTTP_405_METHOD_NOT_ALLOWED})
+
+            chat_user_obj = ChatUser.objects.get(room_id=room_id, user_id=user_id)
+            chat_user_obj.status = "DELETED"
+            chat_user_obj.save()
             return Response({"status": status.HTTP_200_OK})
 
         except ChatUser.DoesNotExist:
@@ -377,14 +401,20 @@ class ChatJoinedView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        rooms = ChatUser.objects.filter(user_id=user_id, is_active=True)
+        chat_user = ChatUser.objects.filter(user_id=user_id)
+        print("chat_user", chat_user)
+
+        address = Address.objects.filter(user=user_id).order_by('-created_at')
+        request_latitude = address[0].addr_latitude
+        request_longitude = address[0].addr_longitude
+        request_location = (request_latitude, request_longitude)
 
         joined_room = []
 
-        for i in rooms:
+        for i in chat_user:
             room = Room.objects.get(id=i.room_id)
-            print("room", room)
-            joined_room.append(room)
+            if room.status != "DONE":
+                joined_room.append(room)
 
         for room in joined_room:
             room_id = room.id
@@ -400,6 +430,8 @@ class ChatJoinedView(ListAPIView):
             created_at = room.created_at
 
             if now - created_at >= timedelta(days=7):
+                # strftime() -> datetime 형식화 메소드
+                # %b -> 달을 짧게 출력, %d -> 날 출력
                 room.created_at = created_at.strftime("%b %d")
 
             elif now - created_at >= timedelta(days=1):
@@ -416,6 +448,9 @@ class ChatJoinedView(ListAPIView):
             del_fee_for_person = int(delivery_fee / max_participant_num)
             room.delivery_fee = del_fee_for_person
 
+            # 거리 계산
+            distance = haversine(request_location, (room.pickup_latitude, room.pickup_longitude), unit=Unit.METERS)
+
             # 현재 채팅방 참여자 수 추출
             participant_num = ChatUser.objects.filter(room_id=room_id).count()
 
@@ -423,10 +458,10 @@ class ChatJoinedView(ListAPIView):
             # 해당 dict 에 participant_num key-value 추가
             room = room.__dict__
             room['is_leader'] = is_leader
+            room['distance'] = int(distance)
             room['participant_num'] = participant_num
 
-        serializer = RoomJoinedSerializer(instance=joined_room, many=True)
-
+        serializer = RoomListSerializer(instance=joined_room, many=True)
         return Response({"status": status.HTTP_200_OK, "joined_room": serializer.data})
 
 
@@ -434,14 +469,14 @@ class ChatDoneListView(ListAPIView):
     def get(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
-        rooms = ChatUser.objects.filter(user_id=user_id, is_active=False)
+        room_idx = ChatUser.objects.filter(user_id=user_id).exclude(status="DELETED")
 
         joined_room = []
 
-        for i in rooms:
+        for i in room_idx:
             room = Room.objects.get(id=i.room_id)
-            print("room", room)
-            joined_room.append(room)
+            if room.status == "DONE":
+                joined_room.append(room)
 
         for room in joined_room:
             room_id = room.id
@@ -474,17 +509,24 @@ class ChatDoneListView(ListAPIView):
 class ChatDoneView(RetrieveAPIView):
     queryset = ChatUser.objects.all()
 
-    # 방 번호 전달 받아 user_id, room_id 로 ChatUser 객체 조회 후 상태(is_active) 변경
+    # 방 번호 전달 받아 user_id, room_id 로 ChatUser 객체 조회 후 상태(status) 변경
     def get(self, request, room_id):
         user_id = CustomJWTAuthentication.authenticate(self, request)
+        chat_user_list = ChatUser.objects.filter(room_id=room_id)
 
         try:
-            chat_user = ChatUser.objects.get(user_id=user_id, room_id=room_id)
-            print("chat_user", chat_user.is_active)
+            chat_user = chat_user_list.get(user_id=user_id)
 
-            chat_user.is_active = False
-
+            chat_user.status = "DONE"
             chat_user.save()
+
+            for chat_user in chat_user_list:
+                if chat_user.status != "DONE":
+                    return Response({"status": status.HTTP_200_OK})
+
+            room = Room.objects.get(id=room_id)
+            room.status = "DONE"
+            room.save()
 
             return Response({"status": status.HTTP_200_OK})
 

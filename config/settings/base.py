@@ -27,6 +27,8 @@ secret_file = os.path.join(BASE_DIR, 'secrets.json')
 secrets = Secrets(secret_file)
 
 SECRET_KEY = secrets.get_secret("SECRET_KEY")
+EMAIL_HOST_USER = secrets.get_secret("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = secrets.get_secret("EMAIL_HOST_PASSWORD")
 
 INSTALLED_APPS = [
     # app
@@ -168,8 +170,9 @@ AUTHENTICATION_BACKENDS = [
 # django 내장 메일 전송 기능
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = "smtp.naver.com"
-EMAIL_HOST_USER = 'uts4179@naver.com'
-EMAIL_HOST_PASSWORD = 'uts4092123.'
+# TODO
+EMAIL_HOST_USER = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
