@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'accounts',
     'neighbor',
     'chat',
+    'payment',
 
     # jwt
     'rest_framework_simplejwt',
