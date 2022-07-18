@@ -30,5 +30,8 @@ urlpatterns = [
     # 최근 검색어 조회, 삭제, 인기 검색어 조회
     path('user/search/', views.UserRecentSearchView.as_view()),
     path('user/search/<int:pk>/', views.UserSearchDestroyAPIView.as_view()),
-    path('top_searched/', views.Top10_SearchedAPIView)
+    path('top_searched/', views.Top10_SearchedAPIView),
+
+    # toss 웹뷰 테스트
+    path('tosspayments/', views.toss_view, name='toss_payment')
 ]
