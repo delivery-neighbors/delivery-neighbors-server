@@ -16,7 +16,7 @@ urlpatterns = [
     # 리뷰 목록 조회
     path('user/<int:userid>/review/', views.UserReviewListAPIView.as_view()),
     # 리뷰 남기기
-    path('user/review/<int:chat_user_id>', views.UserReviewCreateView.as_view()),
+    path('user/review/<int:chat_user_id>/', views.UserReviewCreateView.as_view()),
 
     # path('user/<int:userid>/review/<int:reviewid>/', views.user_review_update),
 
