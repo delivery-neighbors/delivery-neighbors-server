@@ -232,3 +232,6 @@ def Top10_SearchedAPIView(request):
     recent_file_name = recent_file[0]
     return JsonResponse({"status": status.HTTP_200_OK, "wordcloud_url": f"{BASE_URL}media/images/wordcloud/{recent_file_name}"})
 
+
+def toss_view(request):
+    return render(request, 'tosspayments.html')

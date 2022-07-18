@@ -16,7 +16,7 @@ urlpatterns = [
     # 리뷰 목록 조회
     path('user/<int:userid>/review/', views.UserReviewListAPIView.as_view()),
     # 리뷰 남기기
-    path('user/review/<int:chat_user_id>', views.UserReviewCreateView.as_view()),
+    path('user/review/<int:chat_user_id>/', views.UserReviewCreateView.as_view()),
 
     # path('user/<int:userid>/review/<int:reviewid>/', views.user_review_update),
 
@@ -30,5 +30,8 @@ urlpatterns = [
     # 최근 검색어 조회, 삭제, 인기 검색어 조회
     path('user/search/', views.UserRecentSearchView.as_view()),
     path('user/search/<int:pk>/', views.UserSearchDestroyAPIView.as_view()),
-    path('top_searched/', views.Top10_SearchedAPIView)
+    path('top_searched/', views.Top10_SearchedAPIView),
+
+    # toss 웹뷰 테스트
+    path('tosspayments/', views.toss_view, name='toss_payment')
 ]

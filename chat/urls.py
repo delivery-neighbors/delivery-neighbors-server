@@ -8,7 +8,7 @@ urlpatterns = [
     # 채팅방 생성 & 목록 조회
     path('room/', views.RoomGetCreateAPIView.as_view(), name='room-main'),
     # 단일 채팅방 조회 & 삭제
-    path('room/<int:pk>', views.RoomRetrieveDestroyAPIView.as_view(), name='room-sub'),
+    path('room/<int:pk>/', views.RoomRetrieveDestroyAPIView.as_view(), name='room-sub'),
     # 채팅방 키워드 검색
     path('room/search/', views.RoomGetByKeywordView.as_view(), name='room-search'),
 

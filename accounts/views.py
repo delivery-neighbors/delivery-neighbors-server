@@ -1,3 +1,4 @@
+import base64
 import random
 
 import requests
@@ -8,6 +9,7 @@ from dj_rest_auth.registration.views import SocialLoginView
 from django.conf import settings
 from django.contrib import auth
 from django.contrib.auth.hashers import make_password, check_password
+from django.core.files.base import ContentFile
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -17,14 +19,12 @@ from rest_framework.generics import *
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.utils.translation import gettext_lazy
 
 from accounts.serializers import *
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
 
 from config.settings.base import SOCIAL_OAUTH_CONFIG
-from config.authentication import CustomJWTAuthentication
 
 BASE_URL = "https://baedalius.com/"  # deploy version
 # BASE_URL = "http://localhost:8000/"  # local version
@@ -41,12 +41,21 @@ class UserCreateAPIView(CreateAPIView):
     serializer_class = UserCreateSerializer
 
     def post(self, request, *args, **kwargs):
+
+        email = request.data['email']
+        encode_imgstr = request.data['avatar']
+
         if request.data['avatar']:
+            # 아바타 이미지 저장
+            imgdata = base64.b64decode(encode_imgstr)
+            with open(f"media/images/avatar/{email}-avatar.jpg", 'wb') as f:
+                f.write(imgdata)
+
             user_data = {
                 'username': request.data['username'],
-                'email': request.data['email'],
+                'email': email,
                 'password': make_password(request.data['password']),
-                'avatar': request.data['avatar']
+                'avatar': f"images/avatar/{email}-avatar.jpg"  # request.data['avatar']
             }
         else:
             user_data = {
@@ -237,7 +246,16 @@ def kakao_callback(request):
         )
         # 프로필 사진 설정
         user = User.objects.get(email=email)
-        user.avatar = kakao_profile['profile_image_url']
+        avatar_url = kakao_profile['profile_image_url']
+
+        # 카카오 기본 사진이 아닐 때 -> 이미지 저장
+        if avatar_url != "http://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg":
+            avatar_request = requests.get(avatar_url)
+            user.avatar.save(
+                f"{kakao_account['email']}-avatar.jpg", ContentFile(avatar_request.content)
+            )
+        else:  # 기본 이미지일 때 -> 저장된 이미지 적용
+            user.avatar = "images/avatar/default_img.jpg"
         user.save()
 
         accept_status = accept.status_code
