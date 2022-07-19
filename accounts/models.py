@@ -41,7 +41,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         null=False
     )
-    avatar = models.URLField(blank=True, default="https://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg")
+    avatar = models.ImageField(null=True, blank=True, upload_to='images/avatar/',
+                               default='images/avatar/default_img.jpg')
     date_joined = models.DateTimeField(auto_now_add=True)
 
     is_active = models.BooleanField(default=True)
