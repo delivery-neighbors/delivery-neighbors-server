@@ -43,42 +43,38 @@ class UserCreateAPIView(CreateAPIView):
     def post(self, request, *args, **kwargs):
 
         email = request.data['email']
-        encode_imgstr = request.data['avatar']
+        avatar = request.data['avatar']
 
-        if request.data['avatar']:
-            # 아바타 이미지 저장
-            imgdata = base64.b64decode(encode_imgstr)
-            with open(f"media/images/avatar/{email}-avatar.jpg", 'wb') as f:
-                f.write(imgdata)
+        user_data = {
+            'username': request.data['username'],
+            'email': email,
+            'password': make_password(request.data['password'])
+        }
 
-            user_data = {
-                'username': request.data['username'],
-                'email': email,
-                'password': make_password(request.data['password']),
-                'avatar': f"images/avatar/{email}-avatar.jpg"  # request.data['avatar']
-            }
-        else:
-            user_data = {
-                'username': request.data['username'],
-                'email': request.data['email'],
-                'password': make_password(request.data['password'])
-            }
-
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=user_data)
 
         if serializer.is_valid(raise_exception=False):
             user = serializer.create(user_data)
-            print("user", user)
             token = RefreshToken.for_user(user)
             refresh = str(token)
             access = str(token.access_token)
 
-            return JsonResponse(
-                {"status": status.HTTP_201_CREATED, "data": {'user': user.pk, 'access': access, 'refresh': refresh}})
-
         else:
             print(serializer.errors)
             return Response({"status": status.HTTP_400_BAD_REQUEST})
+
+        # 아바타가 있으면 이미지 저장
+        if avatar:
+            imgdata = base64.b64decode(avatar)
+            with open(f"media/images/avatar/{email}-avatar.jpg", 'wb') as f:
+                f.write(imgdata)
+
+            user = User.objects.get(email=email)
+            user.avatar = f"images/avatar/{email}-avatar.jpg"
+            user.save()
+
+        return JsonResponse(
+            {"status": status.HTTP_201_CREATED, "data": {'user': user.pk, 'access': access, 'refresh': refresh}})
 
 
 class EmailSendView(GenericAPIView):
