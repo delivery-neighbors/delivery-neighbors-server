@@ -126,7 +126,7 @@ class UserLoginAPIView(GenericAPIView):
                 refresh = str(token)
                 access = str(token.access_token)
 
-                return JsonResponse({"status": status.HTTP_201_CREATED, "data": {'user': user.pk, 'refresh': refresh, 'access': access}})  # 성공메세지
+                return JsonResponse({"status": status.HTTP_201_CREATED, "user": user.pk, "refresh": refresh, "access": access})  # 성공메세지
             else:
                 return JsonResponse(
                     {"status": status.HTTP_400_BAD_REQUEST})  # 에러메세지
