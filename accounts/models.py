@@ -41,7 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         null=False
     )
-    avatar = models.ImageField(blank=True, upload_to='images/avatar/',
+    avatar = models.ImageField(null=True, blank=True, upload_to='images/avatar/',
                                default='images/avatar/default_img.jpg')
     date_joined = models.DateTimeField(auto_now_add=True)
 
