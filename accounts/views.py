@@ -74,7 +74,7 @@ class UserCreateAPIView(CreateAPIView):
             user.save()
 
         return JsonResponse(
-            {"status": status.HTTP_201_CREATED, "data": {'user': user.pk, 'access': access, 'refresh': refresh}})
+            {"status": status.HTTP_201_CREATED, "user": user.pk, "access": access, "refresh": refresh})
 
 
 class EmailSendView(GenericAPIView):
