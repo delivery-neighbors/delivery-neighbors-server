@@ -44,10 +44,8 @@ class PayCreateListAPIView(ListCreateAPIView):
         chat_user = ChatUser.objects.get(id=kwargs['chatuser'])
         room = Room.objects.get(chatuser=chat_user)
         delivery_fee_1ps = int(room.delivery_fee / room.max_participant_num)  # 1인당 배달비
-        print(delivery_fee_1ps)
 
         order_id = str(datetime.now().strftime("%Y%m%d%H%M")) + str(chat_user.id)
-        print(order_id)
 
         try:  # 이미 결제 정보를 생성했다면, 결제 정보 수정
             pay_obj = Pay.objects.get(chat_user=chat_user)
