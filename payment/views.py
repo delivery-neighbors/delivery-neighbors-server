@@ -95,6 +95,21 @@ def PayConfirmed(request):
     if success_response_amount != request_user_amount:
         return JsonResponse({"status": status.HTTP_406_NOT_ACCEPTABLE})
 
+    # 채팅 유저 상태 변경
+    chat_user = Pay.objects.get(order_id=response_orderId).chat_user
+    print(type(chat_user))
+    # chat_user = ChatUser.objects.get(id=chat_user_id)
+    # print(chat_user)
+    chat_user.status = 'PAY_DONE'  # 객체라면 통과
+    chat_user.save()
+
+    # 채팅방 상태 변경 (방장을 제외한 채팅 유저들이 모두 'PAY_DONE' 상태일 때)
+    participated_room = chat_user.room
+    chat_user_pay_done = ChatUser.objects.filter(room=participated_room, status='PAY_DONE')
+    if len(chat_user_pay_done) == participated_room.max_participant_num - 1:
+        participated_room.status = 'PAY_DONE'
+        participated_room.save()
+
     return JsonResponse({"status": status.HTTP_200_OK})
 
 
