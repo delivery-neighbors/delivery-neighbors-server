@@ -40,6 +40,9 @@
                 successUrl: 'http://localhost:8080/success',
                 failUrl: 'http://localhost:8080/fail',
             });
+        },
+        error: function(err){
+            document.write("주문 확정이 되지 않았습니다. 뒤로 돌아가십시오.");
         }
     });
 </script>
