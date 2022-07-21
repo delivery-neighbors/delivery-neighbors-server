@@ -1,10 +1,10 @@
 import base64
+from datetime import datetime
 
 import requests
 from django.http import JsonResponse
-from requests import Response
 from rest_framework import status
-from rest_framework.generics import ListAPIView, ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView
 
 from chat.models import ChatUser, Room
 from config.settings.base import TOSS_PAYMENTS_CONFIG
@@ -46,14 +46,18 @@ class PayCreateListAPIView(ListCreateAPIView):
         delivery_fee_1ps = int(room.delivery_fee / room.max_participant_num)  # 1인당 배달비
         print(delivery_fee_1ps)
 
+        order_id = str(datetime.now().strftime("%Y%m%d%H%M")) + str(chat_user.id)
+        print(order_id)
+
         try:  # 이미 결제 정보를 생성했다면, 결제 정보 수정
-            pay_obj = Pay.objects.get(order_id=chat_user)
+            pay_obj = Pay.objects.get(chat_user=chat_user)
             pay_obj.amount = int(request.data['amount']) + delivery_fee_1ps  # 자신의 주문금액 + 1인당 배달비
             pay_obj.save()
 
         except Pay.DoesNotExist:  # 없으면 결제 정보 생성
             Pay.objects.create(
-                order_id=chat_user,
+                chat_user=chat_user,
+                order_id = order_id,
                 amount=int(request.data['amount']) + delivery_fee_1ps
             )
 
@@ -61,7 +65,7 @@ class PayCreateListAPIView(ListCreateAPIView):
 
     def get(self, request, *args, **kwargs):
         chat_user = ChatUser.objects.get(id=kwargs['chatuser'])
-        pay = Pay.objects.get(order_id=chat_user)
+        pay = Pay.objects.get(chat_user=chat_user)
 
         pay = pay.__dict__
         pay['username'] = chat_user.user.username

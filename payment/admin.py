@@ -4,7 +4,7 @@ from payment.models import Pay
 
 
 class PayAdmin(admin.ModelAdmin):
-    list_display = ['id', 'order', 'amount']
+    list_display = ['id', 'chat_user', 'order_id', 'amount']
 
 
 admin.site.register(Pay, PayAdmin)
