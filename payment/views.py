@@ -59,6 +59,16 @@ class PayCreateListAPIView(ListCreateAPIView):
                 amount=int(request.data['amount']) + delivery_fee_1ps
             )
 
+        # 채팅 유저의 상태값 변경
+        chat_user.status = 'CONFIRMED'
+        chat_user.save()
+
+        # 결제 정보를 모두 입력되면, 방의 상태를 변경
+        chat_users_confirmed_with_room = ChatUser.objects.filter(room=room, status="CONFIRMED")
+        if len(chat_users_confirmed_with_room) == room.max_participant_num:
+            room.status = "CONFIRMED"
+            room.save()
+
         return JsonResponse({"status": status.HTTP_200_OK})
 
     def get(self, request, *args, **kwargs):
