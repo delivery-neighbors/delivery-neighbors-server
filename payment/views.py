@@ -1,5 +1,6 @@
 import base64
 from datetime import datetime
+from random import randint
 
 import requests
 from django.http import JsonResponse
@@ -15,27 +16,6 @@ TOSS_API_KEY = TOSS_PAYMENTS_CONFIG['TOSS_API_KEY']
 TOSS_SECRET_KEY = TOSS_PAYMENTS_CONFIG['TOSS_SECRET_KEY']
 
 
-def payConfirmed(request):
-    pay_api = "https://api.tosspayments.com/v1/payments/confirm"  # 결제 승인 api
-    data_string = TOSS_SECRET_KEY + ":"
-    str_bytes  = data_string.encode('utf-8')
-    str_base64 = base64.b64encode(str_bytes)
-    base64_str = str_base64.decode('utf-8')
-    data = {
-        "paymentKey": "5Z_AEEC420lbQO-KBs6zW", # payment
-        "orderId": "mYVfEraupbFHZPAb",
-        "amount": 15000
-    }
-    headers = {
-        'Authorization': f"Basic {base64_str}",
-        'Content-Type': 'application/json'
-    }
-
-    accept_response = requests.post(pay_api, data=data, headers=headers)
-    accept_json = accept_response.json()
-    return JsonResponse(accept_json)
-
-
 class PayCreateListAPIView(ListCreateAPIView):
     queryset = Pay.objects.all()
     serializer_class = PaySerializer
@@ -45,7 +25,7 @@ class PayCreateListAPIView(ListCreateAPIView):
         room = Room.objects.get(chatuser=chat_user)
         delivery_fee_1ps = int(room.delivery_fee / room.max_participant_num)  # 1인당 배달비
 
-        order_id = str(datetime.now().strftime("%Y%m%d%H%M")) + str(chat_user.id)
+        order_id = f"Dn-{datetime.now().strftime('%Y%m%d%H%M')}_{randint(1000, 9999)}"
 
         try:  # 이미 결제 정보를 생성했다면, 결제 정보 수정
             pay_obj = Pay.objects.get(chat_user=chat_user)
@@ -78,7 +58,45 @@ class PayCreateListAPIView(ListCreateAPIView):
         pay = pay.__dict__
         pay['username'] = chat_user.user.username
         pay['room_name'] = Room.objects.get(chatuser=chat_user).room_name
-        print(pay)
 
         serializer = PaySerializer(instance=pay)
         return JsonResponse({"status": status.HTTP_200_OK, "data": serializer.data})
+
+
+def PayConfirmed(request):
+    response_orderId = request.GET["orderId"]
+    response_paymentKey = request.GET["paymentKey"]
+    response_amount = int(request.GET["amount"])
+
+    # 결제 승인 api
+    pay_api = "https://api.tosspayments.com/v1/payments/confirm"
+    data_string = TOSS_SECRET_KEY + ":"
+    str_bytes = data_string.encode('utf-8')
+    str_base64 = base64.b64encode(str_bytes).decode()
+
+    data = {
+        "paymentKey": response_paymentKey,  # payment
+        "orderId": response_orderId,
+        "amount": response_amount
+    }
+    headers = {
+        'Authorization': f"Basic {str_base64}",
+        'Content-Type': 'application/json'
+    }
+
+    accept_response = requests.post(pay_api, json=data, headers=headers)
+    accept_json = accept_response.json()
+    print(f"결제 완료 resopnse: {accept_json}")
+
+    # 결제 요청한 금액과 결제된 금액이 일치하는지 확인
+    success_response_amount = int(accept_json['card']['amount'])
+    request_user_amount = Pay.objects.get(order_id=response_orderId).amount
+
+    if success_response_amount != request_user_amount:
+        return JsonResponse({"status": status.HTTP_406_NOT_ACCEPTABLE})
+
+    return JsonResponse({"status": status.HTTP_200_OK})
+
+
+def PayFailed(request):
+    return JsonResponse({"status": status.HTTP_402_PAYMENT_REQUIRED})
