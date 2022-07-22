@@ -24,7 +24,7 @@ def schedule_api():
     wordcloud = WordCloud(
         font_path='./static/wordcloud/font/BMDOHYEON_ttf.ttf',
         background_color='white',
-        colormap='summer',
+        colormap='Paired',
         width=300,
         height=200,
     ).generate_from_frequencies(dict(search_dict))

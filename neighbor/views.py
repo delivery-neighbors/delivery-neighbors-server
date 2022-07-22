@@ -83,8 +83,11 @@ class UserReviewListAPIView(generics.ListAPIView):
     serializer_class = UserReviewSerializer
 
     def get(self, request, userid):
-        review = UserReview.objects.filter(user_id=userid)
-        serializer = UserReviewSerializer(review, many=True)
+        user = User.objects.get(id=userid)
+
+        review = UserReview.objects.filter(user_id=userid).order_by('-count')
+        review_list = review[:3]
+        serializer = UserReviewSerializer(review_list, many=True)
 
         return Response({"status": status.HTTP_200_OK, "data": serializer.data})
 
