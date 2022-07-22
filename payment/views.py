@@ -97,10 +97,7 @@ def PayConfirmed(request):
 
     # 채팅 유저 상태 변경
     chat_user = Pay.objects.get(order_id=response_orderId).chat_user
-    print(type(chat_user))
-    # chat_user = ChatUser.objects.get(id=chat_user_id)
-    # print(chat_user)
-    chat_user.status = 'PAY_DONE'  # 객체라면 통과
+    chat_user.status = 'PAY_DONE'
     chat_user.save()
 
     # 채팅방 상태 변경 (방장을 제외한 채팅 유저들이 모두 'PAY_DONE' 상태일 때)
