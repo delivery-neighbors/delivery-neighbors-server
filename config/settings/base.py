@@ -35,6 +35,10 @@ INSTALLED_APPS = [
     'accounts',
     'neighbor',
     'chat',
+    'chatting',
+
+    # channels
+    'channels',
 
     # jwt
     'rest_framework_simplejwt',
@@ -182,7 +186,7 @@ REST_USE_JWT = True
 JWT_SECRET_KEY = secrets.get_secret("JWT_SECRET_KEY")
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=3),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -201,3 +205,14 @@ SOCIAL_OAUTH_CONFIG = {
 # django-jobs
 APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"  # Default
 SCHEDULER_DEFAULT = True
+
+
+# Channels
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'config': {
+            "hosts": [('127.0.0.1', 6379)],
+        }
+    }
+}

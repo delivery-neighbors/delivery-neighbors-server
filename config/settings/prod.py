@@ -18,5 +18,7 @@ DATABASES = {
     }
 }
 
+# ASGI application
+ASGI_APPLICATION = 'config.asgi.prod.application'
 # WSGI application
 WSGI_APPLICATION = 'config.wsgi.prod.application'
