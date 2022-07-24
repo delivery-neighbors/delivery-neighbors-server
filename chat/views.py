@@ -289,10 +289,17 @@ class RoomGetByKeywordView(ListAPIView):
 class ChatUserView(ListCreateAPIView, DestroyAPIView):
     queryset = ChatUser.objects.all()
 
-    def get(self, reqeust, room_id):
-        user_list = ChatUser.objects.filter(room_id=room_id)
-        serializer = ChatUserSerializer(instance=user_list, many=True)
+    def get(self, request, room_id):
+        request = request.GET['except_leader']
 
+        leader = Room.objects.get(id=room_id).leader
+
+        if request == 'Y':
+            user_list = ChatUser.objects.filter(room_id=room_id).exclude(user=leader)
+        elif request == 'N':
+            user_list = ChatUser.objects.filter(room_id=room_id)
+
+        serializer = ChatUserSerializer(instance=user_list, many=True)
         return Response({"status": status.HTTP_200_OK, "users": serializer.data})
 
     def post(self, request, room_id):

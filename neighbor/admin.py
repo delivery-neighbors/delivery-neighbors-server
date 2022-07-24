@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from accounts.models import User
-from neighbor.models import Review, UserReview, Address, Search, ChatUserReview
+from neighbor.models import Review, UserReview, Address, Search, ChatUserReview, UserReliability
 
 
 class UserReviewInline(admin.TabularInline):
@@ -37,9 +37,15 @@ class ChatUserReviewAdmin(admin.ModelAdmin):
     list_display = ['chat_user', 'writer']
 
 
+class UserReliabilityAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'num_as_leader', 'num_as_participant', 'score']
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(UserReview, UserReviewAdmin)
 admin.site.register(Address, AddressAdmin)
 admin.site.register(Search, SearchAdmin)
 admin.site.register(ChatUserReview, ChatUserReviewAdmin)
+admin.site.register(UserReliability, UserReliabilityAdmin)
+
