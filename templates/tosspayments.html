@@ -1,21 +1,41 @@
+{#{% load static %}#}
+
 <head>
   <title>결제하기</title>
   <!-- 1. 스크립트 추가 -->
   <script src="https://js.tosspayments.com/v1"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
 </head>
 <script>
-  var clientKey = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq' // 테스트용 클라이언트 키
-  var customerKey = '9r-20N_1I5mpDYD0JAJz9' // 고객을 식별할 수 있는 키
-  // 2. 초기화
-  var tossPayments = TossPayments(clientKey)
-  tossPayments.requestPayment('카드', {
-  // 결제 수단 파라미터
-  // 결제 정보 파라미터
-  amount: 20000,
-  orderId: 'aslkjfahslk',
-  orderName: '가장 맛있는 족발 3명',
-  customerName: '엄지우',
-  successUrl: 'http://localhost:8080/success',
-  failUrl: 'http://localhost:8080/fail',
-})
+    const url = new URL(document.location.href);
+    const urlParams = url.searchParams;
+    const chat_user = urlParams.get('chatuser')
+    document.write("chatuser: " + chat_user);
+</script>
+<script>
+    $.ajax({
+        type: "GET",
+        url: `http://localhost:8000/payment/toss/info/${chat_user}`,
+        datatype: 'json',
+
+        success: function (response) {
+            data = response.data;
+            amount = data['amount'];
+
+            var clientKey = 'test_ck_lpP2YxJ4K87vLWB7AWmrRGZwXLOb' // 테스트용 클라이언트 키
+
+            var tossPayments = TossPayments(clientKey)
+            tossPayments.requestPayment('카드', {
+                amount: data['amount'],
+                orderId: data['order_id'],
+                orderName: data['room_name'],
+                customerName: data['username'],
+                successUrl: 'http://localhost:8000/payment/toss/confirm/',
+                failUrl: 'http://localhost:8000/payment/toss/fail/',
+            });
+        },
+        error: function(err){
+            document.write("주문 확정이 되지 않았습니다. 뒤로 돌아가십시오.");
+        }
+    });
 </script>

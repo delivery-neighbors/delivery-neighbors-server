@@ -24,10 +24,11 @@ urlpatterns = [
     path('account/', include('allauth.urls')),
 
     # apps
+    path('', include('neighbor.urls')),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    path('', include('neighbor.urls')),
     path('chat/', include('chat.urls')),
+    path('payment/', include('payment.urls')),
     path('chatting/', include('chatting.urls')),
 
     # Swagger
