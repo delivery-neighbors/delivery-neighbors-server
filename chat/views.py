@@ -7,9 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from accounts.models import User
-from chat.models import Category, Room, ChatUser, Location
-from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer, ChatUserSerializer, \
-    RoomDoneSerializer, ChatUserStatusSerializer
+from chat.serializers import *
 from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
@@ -533,6 +531,7 @@ class ChatDoneView(RetrieveAPIView):
         except ChatUser.DoesNotExist:
             return Response({"status": status.HTTP_400_BAD_REQUEST})
 
+
 class RoomWithUserStatusListView(ListAPIView):
     def get(self, request, pk):
         room = Room.objects.get(id=pk)
@@ -554,5 +553,21 @@ class RoomWithUserStatusListView(ListAPIView):
             chat_user = chat_user.__dict__
             chat_user['status'] = status_proceeding
 
-        serializers = ChatUserStatusSerializer(instance= joined_user, many=True)
-        return Response({"status": status.HTTP_200_OK, "room_status": status_value, "user_status": serializers.data})
+        serializer = ChatUserStatusSerializer(instance= joined_user, many=True)
+        return Response({"status": status.HTTP_200_OK, "room_status": status_value, "user_status": serializer.data})
+
+
+class MyInfoByRoomAPIView(ListAPIView):
+    def get(self, request, pk):
+        room = Room.objects.get(id=pk)
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+        chat_user = ChatUser.objects.get(room=room, user=user_id)
+
+        my_data = {
+            "id": chat_user.id,
+            "is_leader": True if user_id==room.leader.id else False,
+            "status": chat_user.status
+        }
+
+        serializer = MyInfoByRoomSerializer(room)
+        return Response({"status": status.HTTP_200_OK, "room": serializer.data, "user": my_data})

@@ -116,3 +116,9 @@ class ChatUserStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatUser
         fields = ['id', 'name', 'user_avatar', 'status']
+
+
+class MyInfoByRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ['id', 'room_name', 'status']

@@ -63,7 +63,7 @@ class PayCreateListAPIView(ListCreateAPIView):
         return JsonResponse({"status": status.HTTP_200_OK, "data": serializer.data})
 
 
-def PayConfirmed(request):
+def pay_confirmed(request):
     response_orderId = request.GET["orderId"]
     response_paymentKey = request.GET["paymentKey"]
     response_amount = int(request.GET["amount"])
@@ -110,5 +110,5 @@ def PayConfirmed(request):
     return JsonResponse({"status": status.HTTP_200_OK})
 
 
-def PayFailed(request):
+def pay_failed(request):
     return JsonResponse({"status": status.HTTP_402_PAYMENT_REQUIRED})

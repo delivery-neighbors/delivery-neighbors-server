@@ -8,8 +8,8 @@ urlpatterns = [
     path('toss/info/<int:chatuser>/', views.PayCreateListAPIView.as_view(), name='pay-info'),
 
     # 결제 성공 및 결제 승인
-    path('toss/confirm/', views.PayConfirmed, name='pay_confirmed'),
+    path('toss/confirm/', views.pay_confirmed, name='pay_confirmed'),
 
     # 결제 실패
-    path('toss/fail/', views.PayFailed, name='pay_failed')
+    path('toss/fail/', views.pay_failed, name='pay_failed')
 ]
