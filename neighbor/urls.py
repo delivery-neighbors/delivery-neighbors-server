@@ -7,6 +7,8 @@ from neighbor import views
 urlpatterns = [
     # 유저 정보
     path('user/<int:pk>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve-update'),
+    # 마이 페이지
+    path('user/myPage/', views.UserMyPageAPIView.as_view(), name='myPage'),
 
     # review
     # 리뷰 카테고리 조회

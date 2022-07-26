@@ -14,7 +14,7 @@ from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
 
-from neighbor.models import Address, Search
+from neighbor.models import Address, Search, UserReliability
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
@@ -115,8 +115,6 @@ class RoomGetCreateAPIView(ListCreateAPIView):
     def post(self, request):
         # request 에서 user_id 추출
         leader = CustomJWTAuthentication.authenticate(self, request)
-        print("------------------------------------")
-        print("RoomCreate", leader, "번 유저가 채팅방 생성")
 
         # 요청 받은 category id로 해당 카테고리 객체 get
         cate_id = request.data['category']
@@ -289,10 +287,17 @@ class RoomGetByKeywordView(ListAPIView):
 class ChatUserView(ListCreateAPIView, DestroyAPIView):
     queryset = ChatUser.objects.all()
 
-    def get(self, reqeust, room_id):
-        user_list = ChatUser.objects.filter(room_id=room_id)
-        serializer = ChatUserSerializer(instance=user_list, many=True)
+    def get(self, request, room_id):
+        request = request.GET['except_leader']
 
+        leader = Room.objects.get(id=room_id).leader
+
+        if request == 'Y':
+            user_list = ChatUser.objects.filter(room_id=room_id).exclude(user=leader)
+        elif request == 'N':
+            user_list = ChatUser.objects.filter(room_id=room_id)
+
+        serializer = ChatUserSerializer(instance=user_list, many=True)
         return Response({"status": status.HTTP_200_OK, "users": serializer.data})
 
     def post(self, request, room_id):
@@ -512,21 +517,27 @@ class ChatDoneView(RetrieveAPIView):
     # 방 번호 전달 받아 user_id, room_id 로 ChatUser 객체 조회 후 상태(status) 변경
     def get(self, request, room_id):
         user_id = CustomJWTAuthentication.authenticate(self, request)
-        chat_user_list = ChatUser.objects.filter(room_id=room_id)
+        user = User.objects.get(id=user_id)
+        room = Room.objects.get(id=room_id)
 
         try:
-            chat_user = chat_user_list.get(user_id=user_id)
+            chat_user = ChatUser.objects.get(user=user, room=room)
 
             chat_user.status = "DONE"
             chat_user.save()
 
-            for chat_user in chat_user_list:
-                if chat_user.status != "DONE":
-                    return Response({"status": status.HTTP_200_OK})
+            chat_done_user = ChatUser.objects.filter(room=room, status="DONE")
 
-            room = Room.objects.get(id=room_id)
-            room.status = "DONE"
-            room.save()
+            # 모든 ChatUser 상태 변경 시 Room 상태 변경
+            if len(chat_done_user) == room.max_participant_num-1:
+                room.status = "DONE"
+                room.save()
+
+                # Room 상태 변경과 함께 방장 참여 횟수 1회 증가
+                leader = room.leader
+                reliability = UserReliability.objects.get(user=leader)
+                reliability.num_as_leader += 1
+                reliability.save()
 
             return Response({"status": status.HTTP_200_OK})
 
