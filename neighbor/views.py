@@ -31,29 +31,62 @@ class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
-    def put(self, request):
-        user_id = CustomJWTAuthentication.authenticate(self, request)
+    def get(self, request, user_id):
+        # 프로필 사진, 닉네임
+        # 방장/참여자 참여 횟수, 신뢰도 점수
+        # 해당 유저에게 리뷰 남겼는지
+        # top3 카테고리
 
-        try:
-            user = User.objects.get(id=user_id)
+        user = User.objects.get(id=user_id)
 
-            # TODO 빈 값 들어왔을 때 기본 이미지로 설정하기
+        reliability = UserReliability.objects.get(user=user)
 
-            if user.is_active:
-                user.username = request.data['username']
-                user.avatar = request.data['avatar']
+        num_as_leader = reliability.num_as_leader
+        num_as_participant = reliability.num_as_participant
+        score = reliability.score
 
-                serializer = UserUpdateSerializer(user, data=request.data, partial=False)
-                serializer.is_valid(raise_exception=True)
-                self.perform_update(serializer)
+        data = user.__dict__
+        data['num_as_leader'] = num_as_leader
+        data['num_as_participant'] = num_as_participant
+        data['score'] = score
 
-                return Response({"status": status.HTTP_200_OK, "data": {"user": serializer.data}})
+        # TODO category:count count 값 변경 고민 해보기
+        categories = []
 
-            else:
+        for chat_user in ChatUser.objects.filter(user=user):
+            categories.append(chat_user.room.category)
+        print("category", categories.sort())
+
+        return Response({"status": status.HTTP_200_OK})
+
+    def put(self, request, user_id):
+        login_user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        if user_id == login_user_id:
+            try:
+                user = User.objects.get(id=login_user_id)
+
+                # TODO 빈 값 들어왔을 때 기본 이미지로 설정하기
+
+                if user.is_active:
+                    user.username = request.data['username']
+                    user.avatar = request.data['avatar']
+
+                    serializer = UserUpdateSerializer(user, data=request.data, partial=False)
+                    serializer.is_valid(raise_exception=True)
+                    self.perform_update(serializer)
+
+                    return Response({"status": status.HTTP_200_OK, "data": {"user": serializer.data}})
+
+                else:
+                    return Response({"status": status.HTTP_400_BAD_REQUEST})
+
+            except User.DoesNotExist:
                 return Response({"status": status.HTTP_400_BAD_REQUEST})
 
-        except User.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST})
+        else:
+            # 로그인 유저와 정보 수정 요청 시 입력한 유저가 다를 때 401 오류
+            return Response({"status": status.HTTP_401_UNAUTHORIZED})
 
 
 class UserMyPageAPIView(RetrieveAPIView):
@@ -61,11 +94,11 @@ class UserMyPageAPIView(RetrieveAPIView):
         user_id = CustomJWTAuthentication.authenticate(self, request)
         user = User.objects.get(id=user_id)
         avatar = user.avatar
-        reliability = UserReliability.objects.get_or_create(user=user)
+        reliability = UserReliability.objects.get(user=user)
 
-        num_as_leader = reliability[0].num_as_leader
-        num_as_participant = reliability[0].num_as_participant
-        score = reliability[0].score
+        num_as_leader = reliability.num_as_leader
+        num_as_participant = reliability.num_as_participant
+        score = reliability.score
 
         data = user.__dict__
         data['num_as_leader'] = num_as_leader
