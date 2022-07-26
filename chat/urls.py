@@ -32,4 +32,7 @@ urlpatterns = [
 
     # 채팅방 목록에서 지우기
     path('room/<int:room_id>/delete/', views.ChatListDeleteView.as_view(), name='chat-delete'),
+
+    # 방, 채팅 유저 상태 값 조회
+    path('room/<int:pk>/status/', views.RoomWithUserStatusListView.as_view(), name='chat-status')
 ]
