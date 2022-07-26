@@ -538,15 +538,21 @@ class RoomWithUserStatusListView(ListAPIView):
         room = Room.objects.get(id=pk)
         room_status = room.status
         leader = room.leader
-        status_str = {"JOINED": "주문 확정 중", "CONFIRMED": "결제 중", "PAY_DONE": "수령 중", "DONE": "수령 완료"}.get(room_status, "수령 완료")
+
+        status_dict = {"JOINED": "주문 확정 중", "CONFIRMED": "결제 중", "PAY_DONE": "수령 중", "DONE": "수령 완료"}
+        status_list = list(status_dict.keys())
+        status_value = status_dict.get(room_status, "수령 완료")
+        idx = status_list.index(room_status)  # status 의 인덱스 값
 
         joined_user = ChatUser.objects.filter(room=pk).exclude(user=leader)
         for chat_user in joined_user:
             status_proceeding = False
-            if chat_user.status == room_status or chat_user.status == 'DELETED':  # DELETED -> 이미 방이 DONE이 되었다는 뜻이므로 무조건 TRUE 출력
+            if chat_user.status == 'DONE':  # '수령 완료' 이면 모든 유저 status 가 True
+                status_proceeding = True
+            elif chat_user.status == status_list[idx + 1] or chat_user.status == 'DELETED':  # DELETED -> 이미 방이 DONE이 되었다는 뜻이므로 무조건 TRUE 출력
                 status_proceeding = True
             chat_user = chat_user.__dict__
             chat_user['status'] = status_proceeding
 
         serializers = ChatUserStatusSerializer(instance= joined_user, many=True)
-        return Response({"status": status.HTTP_200_OK, "room_status": status_str, "user_status": serializers.data})
+        return Response({"status": status.HTTP_200_OK, "room_status": status_value, "user_status": serializers.data})
