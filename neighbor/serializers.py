@@ -5,9 +5,11 @@ from neighbor.models import Review, UserReview, Address, Search
 
 
 class UserSerializer(serializers.ModelSerializer):
+    avatar_url = serializers.URLField(source='avatar')
+
     class Meta:
         model = User
-        fields = ['id', 'avatar', 'username', 'num_as_leader', 'num_as_participant', 'score', 'top3category']
+        fields = ['id', 'email', 'username', 'avatar_url', 'date_joined', 'last_login', 'is_active']
 
 
 class MyPageSerializer(serializers.ModelSerializer):

@@ -44,6 +44,11 @@ class PayCreateListAPIView(ListCreateAPIView):
         chat_user.status = 'CONFIRMED'
         chat_user.save()
 
+        # 참여자 횟수 카운트
+        user_reliability = UserReliability.objects.get(user=chat_user.user)
+        user_reliability[0].num_as_participant += 1
+        user_reliability[0].save()
+
         # 결제 정보를 모두 입력되면, 방의 상태를 변경
         chat_users_confirmed_with_room = ChatUser.objects.filter(room=room, status="CONFIRMED")
         if len(chat_users_confirmed_with_room) == room.max_participant_num:

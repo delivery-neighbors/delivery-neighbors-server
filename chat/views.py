@@ -526,11 +526,6 @@ class ChatDoneView(RetrieveAPIView):
             chat_user.status = "DONE"
             chat_user.save()
 
-            # 참여자 횟수 카운트
-            user_reliability = UserReliability.objects.get(user=chat_user.user)
-            user_reliability.num_as_participant += 1
-            user_reliability.save()
-
             chat_done_user = ChatUser.objects.filter(room=room, status="DONE")
 
             # 모든 ChatUser 상태 변경 시 Room 상태 변경
