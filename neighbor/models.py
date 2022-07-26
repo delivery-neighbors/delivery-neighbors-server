@@ -45,3 +45,10 @@ class Search(models.Model):
     search_content = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class UserReliability(models.Model):
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
+    num_as_leader = models.IntegerField(default=0)
+    num_as_participant = models.IntegerField(default=0)
+    score = models.IntegerField(default=100)

@@ -12,6 +12,16 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'username', 'avatar_url', 'date_joined', 'last_login', 'is_active']
 
 
+class MyPageSerializer(serializers.ModelSerializer):
+    num_as_leader = serializers.IntegerField()
+    num_as_participant = serializers.IntegerField()
+    score = serializers.IntegerField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'avatar', 'username', 'num_as_leader', 'num_as_participant', 'score']
+
+
 class ReviewSerializer(serializers.Serializer):
     reviewList = serializers.ListField(child=serializers.CharField())
 

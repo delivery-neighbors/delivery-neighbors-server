@@ -27,6 +27,8 @@ from rest_framework_simplejwt.exceptions import TokenError
 from config.settings.base import SOCIAL_OAUTH_CONFIG
 
 # BASE_URL = "https://baedalius.com/"  # deploy version
+from neighbor.models import UserReliability
+
 BASE_URL = "http://localhost:8000/"  # local version
 
 KAKAO_CLIENT_ID = SOCIAL_OAUTH_CONFIG['KAKAO_REST_API_KEY']
@@ -55,6 +57,7 @@ class UserCreateAPIView(CreateAPIView):
 
         if serializer.is_valid(raise_exception=False):
             user = serializer.create(user_data)
+            user_reliability = UserReliability.objects.create(user=user)
             token = RefreshToken.for_user(user)
             refresh = str(token)
             access = str(token.access_token)
@@ -126,7 +129,8 @@ class UserLoginAPIView(GenericAPIView):
                 refresh = str(token)
                 access = str(token.access_token)
 
-                return JsonResponse({"status": status.HTTP_201_CREATED, "user": user.pk, "refresh": refresh, "access": access})  # 성공메세지
+                return JsonResponse({"status": status.HTTP_200_OK,
+                                     "user": user.pk, "refresh": refresh, "access": access})  # 성공메세지
             else:
                 return JsonResponse(
                     {"status": status.HTTP_400_BAD_REQUEST})  # 에러메세지

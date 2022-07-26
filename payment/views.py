@@ -9,6 +9,7 @@ from rest_framework.generics import ListCreateAPIView
 
 from chat.models import ChatUser, Room
 from config.settings.base import TOSS_PAYMENTS_CONFIG
+from neighbor.models import UserReliability
 from payment.models import Pay
 from payment.serializers import PaySerializer
 
@@ -35,13 +36,18 @@ class PayCreateListAPIView(ListCreateAPIView):
         except Pay.DoesNotExist:  # 없으면 결제 정보 생성
             Pay.objects.create(
                 chat_user=chat_user,
-                order_id = order_id,
+                order_id=order_id,
                 amount=int(request.data['amount']) + delivery_fee_1ps
             )
 
         # 채팅 유저의 상태값 변경
         chat_user.status = 'CONFIRMED'
         chat_user.save()
+
+        # 참여자 횟수 카운트
+        user_reliability = UserReliability.objects.get(user=chat_user.user)
+        user_reliability[0].num_as_participant += 1
+        user_reliability[0].save()
 
         # 결제 정보를 모두 입력되면, 방의 상태를 변경
         chat_users_confirmed_with_room = ChatUser.objects.filter(room=room, status="CONFIRMED")
@@ -86,7 +92,7 @@ def pay_confirmed(request):
 
     accept_response = requests.post(pay_api, json=data, headers=headers)
     accept_json = accept_response.json()
-    print(f"결제 완료 resopnse: {accept_json}")
+    print(f"결제 완료 response: {accept_json}")
 
     # 결제 요청한 금액과 결제된 금액이 일치하는지 확인
     success_response_amount = int(accept_json['card']['amount'])
