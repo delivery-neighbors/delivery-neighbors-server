@@ -7,9 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from accounts.models import User
-from chat.models import Category, Room, ChatUser, Location
-from chat.serializers import RoomListSerializer, RoomRetrieveSerializer, CurLocationSerializer, ChatUserSerializer, \
-    RoomDoneSerializer
+from chat.serializers import *
 from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
@@ -176,7 +174,7 @@ class RoomRetrieveDestroyAPIView(RetrieveDestroyAPIView):
         room = self.get_object()
         room_leader = room.leader.pk
 
-        if room.status != "CREATED":
+        if room.status != "JOINED":
             return Response({"status": status.HTTP_405_METHOD_NOT_ALLOWED})
 
         self.destroy(request, *args, **kwargs)
@@ -329,7 +327,7 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
         try:
             chat_user = ChatUser.objects.get(room_id=room_id, user_id=user_pk)
 
-            if room.status != "CREATED":  # Room.status 가 CREATED 가 아닌 상황(주문확정, 결제완료, 수령완료)에는 채팅방 나가기 불가
+            if room.status != "JOINED":  # Room.status 가 JOINED 가 아닌 상황(주문확정, 결제완료, 수령완료)에는 채팅방 나가기 불가
                 return Response({"status": status.HTTP_405_METHOD_NOT_ALLOWED})
 
             else:
@@ -543,3 +541,44 @@ class ChatDoneView(RetrieveAPIView):
 
         except ChatUser.DoesNotExist:
             return Response({"status": status.HTTP_400_BAD_REQUEST})
+
+
+class RoomWithUserStatusListView(ListAPIView):
+    def get(self, request, pk):
+        room = Room.objects.get(id=pk)
+        room_status = room.status
+        leader = room.leader
+
+        status_dict = {"JOINED": "주문 확정 중", "CONFIRMED": "결제 중", "PAY_DONE": "수령 중", "DONE": "수령 완료"}
+        status_list = list(status_dict.keys())
+        status_value = status_dict.get(room_status, "수령 완료")
+        idx = status_list.index(room_status)  # status 의 인덱스 값
+
+        joined_user = ChatUser.objects.filter(room=pk).exclude(user=leader)
+        for chat_user in joined_user:
+            status_proceeding = False
+            if chat_user.status == 'DONE':  # '수령 완료' 이면 모든 유저 status 가 True
+                status_proceeding = True
+            elif chat_user.status == status_list[idx + 1] or chat_user.status == 'DELETED':  # DELETED -> 이미 방이 DONE이 되었다는 뜻이므로 무조건 TRUE 출력
+                status_proceeding = True
+            chat_user = chat_user.__dict__
+            chat_user['status'] = status_proceeding
+
+        serializer = ChatUserStatusSerializer(instance= joined_user, many=True)
+        return Response({"status": status.HTTP_200_OK, "room_status": status_value, "user_status": serializer.data})
+
+
+class MyInfoByRoomAPIView(ListAPIView):
+    def get(self, request, pk):
+        room = Room.objects.get(id=pk)
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+        chat_user = ChatUser.objects.get(room=room, user=user_id)
+
+        my_data = {
+            "id": chat_user.id,
+            "is_leader": True if user_id==room.leader.id else False,
+            "status": chat_user.status
+        }
+
+        serializer = MyInfoByRoomSerializer(room)
+        return Response({"status": status.HTTP_200_OK, "room": serializer.data, "user": my_data})
