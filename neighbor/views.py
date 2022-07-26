@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
-from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView
+from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from wordcloud import WordCloud
@@ -19,9 +19,9 @@ from wordcloud import WordCloud
 from accounts.models import User
 from chat.models import ChatUser
 from config.authentication import CustomJWTAuthentication
-from neighbor.models import Review, UserReview, Address, Search, ChatUserReview
+from neighbor.models import Review, UserReview, Address, Search, ChatUserReview, UserReliability
 from neighbor.serializers import ReviewSerializer, UserSerializer, UserReviewSerializer, ReviewRetrieveSerializer, \
-    UserAddressSerializer, UserUpdateSerializer, UserSearchSerializer
+    UserAddressSerializer, UserUpdateSerializer, UserSearchSerializer, MyPageSerializer
 
 # BASE_URL = "https://baedalius.com/"  # deploy version
 BASE_URL = "http://localhost:8000/"  # local version
@@ -54,6 +54,27 @@ class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
 
         except User.DoesNotExist:
             return Response({"status": status.HTTP_400_BAD_REQUEST})
+
+
+class UserMyPageAPIView(RetrieveAPIView):
+    def get(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+        user = User.objects.get(id=user_id)
+        avatar = user.avatar
+        reliability = UserReliability.objects.get_or_create(user=user)
+
+        num_as_leader = reliability[0].num_as_leader
+        num_as_participant = reliability[0].num_as_participant
+        score = reliability[0].score
+
+        data = user.__dict__
+        data['num_as_leader'] = num_as_leader
+        data['num_as_participant'] = num_as_participant
+        data['score'] = score
+
+        serializer = MyPageSerializer(instance=data)
+
+        return Response({"status": status.HTTP_200_OK, "data": serializer.data})
 
 
 # ver 1)
