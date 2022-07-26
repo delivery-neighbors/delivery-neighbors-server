@@ -31,6 +31,33 @@ class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def get(self, request, user_id):
+        # 프로필 사진, 닉네임
+        # 방장/참여자 참여 횟수, 신뢰도 점수
+        # 해당 유저에게 리뷰 남겼는지
+        # top3 카테고리
+
+        user = User.objects.get(id=user_id)
+
+        reliability = UserReliability.objects.get(user=user)
+
+        num_as_leader = reliability.num_as_leader
+        num_as_participant = reliability.num_as_participant
+        score = reliability.score
+
+        data = user.__dict__
+        data['num_as_leader'] = num_as_leader
+        data['num_as_participant'] = num_as_participant
+        data['score'] = score
+
+        # TODO category:count count 값 변경 고민 해보기
+        categories = []
+
+        for chat_user in ChatUser.objects.filter(user=user):
+            categories.append(chat_user.room.category)
+
+        return Response({"status": status.HTTP_200_OK})
+
     def put(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
 
@@ -61,11 +88,11 @@ class UserMyPageAPIView(RetrieveAPIView):
         user_id = CustomJWTAuthentication.authenticate(self, request)
         user = User.objects.get(id=user_id)
         avatar = user.avatar
-        reliability = UserReliability.objects.get_or_create(user=user)
+        reliability = UserReliability.objects.get(user=user)
 
-        num_as_leader = reliability[0].num_as_leader
-        num_as_participant = reliability[0].num_as_participant
-        score = reliability[0].score
+        num_as_leader = reliability.num_as_leader
+        num_as_participant = reliability.num_as_participant
+        score = reliability.score
 
         data = user.__dict__
         data['num_as_leader'] = num_as_leader
