@@ -15,7 +15,7 @@
 <script>
     $.ajax({
         type: "GET",
-        url: `http://localhost:8000/payment/toss/info/${chat_user}`,
+        url: `https://baedalius.com/payment/toss/info/${chat_user}`,
         datatype: 'json',
 
         success: function (response) {
@@ -30,8 +30,8 @@
                 orderId: data['order_id'],
                 orderName: data['room_name'],
                 customerName: data['username'],
-                successUrl: 'http://localhost:8000/payment/toss/confirm/',
-                failUrl: 'http://localhost:8000/payment/toss/fail/',
+                successUrl: 'https://baedalius.com/payment/toss/confirm/',
+                failUrl: 'https://baedalius.com/payment/toss/fail/',
             });
         },
         error: function(err){
