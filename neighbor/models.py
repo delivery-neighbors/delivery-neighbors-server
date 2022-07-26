@@ -49,6 +49,6 @@ class Search(models.Model):
 
 class UserReliability(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
-    num_as_leader = models.IntegerField()
-    num_as_participant = models.IntegerField()
-    score = models.DecimalField(default=100, max_digits=3, decimal_places=2)
+    num_as_leader = models.IntegerField(default=0)
+    num_as_participant = models.IntegerField(default=0)
+    score = models.IntegerField(default=100)
