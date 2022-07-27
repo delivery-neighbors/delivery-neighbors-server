@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'chatting',
 
     # channels
-    'channels',
+    # 'channels',
 
     # jwt
     'rest_framework_simplejwt',
