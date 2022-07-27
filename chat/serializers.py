@@ -96,10 +96,11 @@ class RoomDoneSerializer(serializers.ModelSerializer):
 class ChatUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     user_avatar = serializers.URLField(source='user.avatar')
+    review_status = serializers.IntegerField()
 
     class Meta:
         model = ChatUser
-        fields = ['id', 'user', 'username', 'user_avatar']
+        fields = ['id', 'user', 'username', 'user_avatar', 'review_status']
 
 
 class CurLocationSerializer(serializers.ModelSerializer):

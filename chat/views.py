@@ -12,7 +12,7 @@ from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
 
-from neighbor.models import Address, Search, UserReliability
+from neighbor.models import Address, Search, UserReliability, ChatUserReview
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
@@ -45,7 +45,7 @@ class RoomGetCreateAPIView(ListCreateAPIView):
             condition = (
                     Q(pickup_latitude__range=(request_latitude - Decimal(0.005), request_latitude + Decimal(0.005))) &
                     Q(pickup_longitude__range=(
-                    request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075)))
+                        request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075)))
             )
             rooms_first_filtering = Room.objects.filter(condition)
 
@@ -286,6 +286,10 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
     queryset = ChatUser.objects.all()
 
     def get(self, request, room_id):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+        login_user = User.objects.get(id=user_id)
+        print("loginUser", login_user)
+
         request = request.GET['except_leader']
 
         leader = Room.objects.get(id=room_id).leader
@@ -294,6 +298,22 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
             user_list = ChatUser.objects.filter(room_id=room_id).exclude(user=leader)
         elif request == 'N':
             user_list = ChatUser.objects.filter(room_id=room_id)
+
+        for chat_user in user_list:
+            # 채팅방에 속한 인원 중 자기 자신이면 review_status=-1로 나타내기
+            if chat_user.user == login_user:
+                review_status = -1
+            else:
+                try:
+                    # 로그인 유저가 채팅방 참여인원 각각에게 남긴 리뷰가 있는지 확인
+                    review = ChatUserReview.objects.get(chat_user=chat_user, writer=login_user)
+                    print("review", review)
+                    review_status = 1
+                # 없으면 review_status=0
+                except ChatUserReview.DoesNotExist:
+                    print("does not exist")
+                    review_status = 0
+            chat_user.review_status = review_status
 
         serializer = ChatUserSerializer(instance=user_list, many=True)
         return Response({"status": status.HTTP_200_OK, "users": serializer.data})
@@ -532,7 +552,7 @@ class ChatDoneView(RetrieveAPIView):
             chat_done_user = ChatUser.objects.filter(room=room, status="DONE")
 
             # 모든 ChatUser 상태 변경 시 Room 상태 변경
-            if len(chat_done_user) == room.max_participant_num-1:
+            if len(chat_done_user) == room.max_participant_num - 1:
                 room.status = "DONE"
                 room.save()
 
