@@ -5,10 +5,14 @@ from neighbor.models import Review, UserReview, Address, Search
 
 
 class UserSerializer(serializers.ModelSerializer):
-    class UserSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = User
-            fields = ['id', 'avatar', 'username', 'num_as_leader', 'num_as_participant', 'score', 'top3category']
+    num_as_leader = serializers.IntegerField()
+    num_as_participant = serializers.IntegerField()
+    score = serializers.IntegerField()
+    top3category = serializers.ListField(child=serializers.JSONField())
+
+    class Meta:
+        model = User
+        fields = ['id', 'avatar', 'username', 'num_as_leader', 'num_as_participant', 'score', 'top3category']
 
 
 class MyPageSerializer(serializers.ModelSerializer):
