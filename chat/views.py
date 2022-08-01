@@ -611,6 +611,12 @@ class MyInfoByRoomAPIView(ListAPIView):
         return Response({"status": status.HTTP_200_OK, "room": serializer.data, "user": my_data})
 
 
+class PickupAddrView(RetrieveAPIView):
+    def get(self, reqeust, room_id):
+        pickup_addr = Room.objects.get(id=room_id).pickup_address
+        return Response({"status": status.HTTP_200_OK, "addr": pickup_addr})
+
+
 class ChatUserPayInfoAPIView(ListAPIView):
     def get(self, request, pk):
         room = Room.objects.get(id=pk)
