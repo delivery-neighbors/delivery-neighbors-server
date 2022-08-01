@@ -212,13 +212,3 @@ TOSS_PAYMENTS_CONFIG = {
     'TOSS_API_KEY': secrets.get_secret('TOSS_API_KEY'),
     'TOSS_SECRET_KEY': secrets.get_secret('TOSS_SECRET_KEY')
 }
-
-# Channels
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'config': {
-            "hosts": [('127.0.0.1', 6379)],
-        }
-    }
-}
