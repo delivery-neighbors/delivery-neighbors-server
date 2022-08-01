@@ -13,6 +13,7 @@ from config.authentication import CustomJWTAuthentication
 from haversine import haversine, Unit
 
 from neighbor.models import Address, Search, UserReliability, ChatUserReview
+from payment.models import Pay
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
@@ -590,7 +591,7 @@ class RoomWithUserStatusListView(ListAPIView):
             chat_user = chat_user.__dict__
             chat_user['status'] = status_proceeding
 
-        serializer = ChatUserStatusSerializer(instance= joined_user, many=True)
+        serializer = ChatUserStatusSerializer(instance=joined_user, many=True)
         return Response({"status": status.HTTP_200_OK, "room_status": status_value, "user_status": serializer.data})
 
 
@@ -608,3 +609,19 @@ class MyInfoByRoomAPIView(ListAPIView):
 
         serializer = MyInfoByRoomSerializer(room)
         return Response({"status": status.HTTP_200_OK, "room": serializer.data, "user": my_data})
+
+
+class ChatUserPayInfoAPIView(ListAPIView):
+    def get(self, request, pk):
+        room = Room.objects.get(id=pk)
+        leader = room.leader
+        joined_user = ChatUser.objects.filter(room=room).exclude(user=leader)
+
+        for chat_user in joined_user:
+            amount = Pay.objects.get(chat_user=chat_user).amount
+
+            chat_user = chat_user.__dict__
+            chat_user['amount'] = amount
+
+        serializer = ChatUserPayInfoSerializer(instance=joined_user, many=True)
+        return Response({"status": status.HTTP_200_OK, "data": serializer.data})

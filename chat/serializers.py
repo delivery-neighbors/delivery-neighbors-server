@@ -123,3 +123,13 @@ class MyInfoByRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = ['id', 'room_name', 'status']
+
+
+class ChatUserPayInfoSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+    user_avatar = serializers.URLField(source='user.avatar')
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = ChatUser
+        fields = ['id', 'username', 'user_avatar', 'amount']
