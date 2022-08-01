@@ -1,4 +1,5 @@
 from datetime import datetime
+from collections import Counter
 
 import ntpath
 
@@ -23,13 +24,55 @@ from neighbor.models import Review, UserReview, Address, Search, ChatUserReview,
 from neighbor.serializers import ReviewSerializer, UserSerializer, UserReviewSerializer, ReviewRetrieveSerializer, \
     UserAddressSerializer, UserUpdateSerializer, UserSearchSerializer, MyPageSerializer
 
-BASE_URL = "https://baedalius.com/"  # deploy version
-# BASE_URL = "http://localhost:8000/"  # local version
+# BASE_URL = "https://baedalius.com/"  # deploy version
+BASE_URL = "http://localhost:8000/"  # local version
 
 
 class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def get(self, request, user_id):
+        # 프로필 사진, 닉네임
+        # 방장/참여자 참여 횟수, 신뢰도 점수
+        # 해당 유저에게 리뷰 남겼는지
+        # top3 카테고리
+
+        user = User.objects.get(id=user_id)
+
+        reliability = UserReliability.objects.get(user=user)
+
+        num_as_leader = reliability.num_as_leader
+        num_as_participant = reliability.num_as_participant
+        score = reliability.score
+
+        # data = user.__dict__ & data['serializer_field_name'] = value 형태가 아닌
+        # user.serializer_field_name = value 로도 값 지정 가능
+        user.num_as_leader = num_as_leader
+        user.num_as_participant = num_as_participant
+        user.score = score
+
+        categories = []
+        for chat_user in ChatUser.objects.filter(user=user):
+            categories.append(chat_user.room.category)
+
+        # 유저가 참여한 모든 채팅방 카테고리가 들어있는
+        # categories list 를 Counter 객체화
+        category_counter = dict(Counter(categories))
+
+        # 카운트 된 횟수로 내림차순 정렬 후 3개만 채택
+        top3category = sorted(category_counter.items(), key=lambda x: x[1], reverse=True)[:3]
+
+        top3_json = {}
+        for i in range(len(top3category)):
+            top3_json[i+1] = {"id": top3category[i][0].id, "category_name": top3category[i][0].category_name,
+                              "category_img": str(top3category[i][0].category_background_img)}
+
+        user.top3category = top3_json.values()
+
+        serializer = UserSerializer(instance=user)
+
+        return Response({"status": status.HTTP_200_OK, "user": serializer.data})
 
     def put(self, request):
         user_id = CustomJWTAuthentication.authenticate(self, request)
@@ -61,11 +104,11 @@ class UserMyPageAPIView(RetrieveAPIView):
         user_id = CustomJWTAuthentication.authenticate(self, request)
         user = User.objects.get(id=user_id)
         avatar = user.avatar
-        reliability = UserReliability.objects.get_or_create(user=user)
+        reliability = UserReliability.objects.get(user=user)
 
-        num_as_leader = reliability[0].num_as_leader
-        num_as_participant = reliability[0].num_as_participant
-        score = reliability[0].score
+        num_as_leader = reliability.num_as_leader
+        num_as_participant = reliability.num_as_participant
+        score = reliability.score
 
         data = user.__dict__
         data['num_as_leader'] = num_as_leader

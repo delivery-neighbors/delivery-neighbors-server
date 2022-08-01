@@ -12,7 +12,7 @@ from config.authentication import CustomJWTAuthentication
 
 from haversine import haversine, Unit
 
-from neighbor.models import Address, Search, UserReliability
+from neighbor.models import Address, Search, UserReliability, ChatUserReview
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
@@ -286,6 +286,10 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
     queryset = ChatUser.objects.all()
 
     def get(self, request, room_id):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+        login_user = User.objects.get(id=user_id)
+        print("loginUser", login_user)
+
         request = request.GET['except_leader']
 
         leader = Room.objects.get(id=room_id).leader
@@ -294,6 +298,22 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
             user_list = ChatUser.objects.filter(room_id=room_id).exclude(user=leader)
         elif request == 'N':
             user_list = ChatUser.objects.filter(room_id=room_id)
+
+        for chat_user in user_list:
+            # 채팅방에 속한 인원 중 자기 자신이면 review_status=-1로 나타내기
+            if chat_user.user == login_user:
+                review_status = -1
+            else:
+                try:
+                    # 로그인 유저가 채팅방 참여인원 각각에게 남긴 리뷰가 있는지 확인
+                    review = ChatUserReview.objects.get(chat_user=chat_user, writer=login_user)
+                    print("review", review)
+                    review_status = 1
+                # 없으면 review_status=0
+                except ChatUserReview.DoesNotExist:
+                    print("does not exist")
+                    review_status = 0
+            chat_user.review_status = review_status
 
         serializer = ChatUserSerializer(instance=user_list, many=True)
         return Response({"status": status.HTTP_200_OK, "users": serializer.data})
@@ -554,18 +574,18 @@ class RoomWithUserStatusListView(ListAPIView):
         room_status = room.status
         leader = room.leader
 
-        status_dict = {"JOINED": "주문 확정 중", "CONFIRMED": "결제 중", "PAY_DONE": "수령 중", "DONE": "수령 완료"}
+        status_dict = {"JOINED": "주문 확정 중", "CONFIRMED": "결제 중", "PAY_DONE": "수령 중",
+                       "DONE": "수령 완료", "temp": "temp"}
         status_list = list(status_dict.keys())
         status_value = status_dict.get(room_status, "수령 완료")
         idx = status_list.index(room_status)  # status 의 인덱스 값
 
-        joined_user = ChatUser.objects.filter(room=pk).exclude(user=leader)
+        joined_user = ChatUser.objects.filter(room=pk)
         for chat_user in joined_user:
             status_proceeding = False
             if chat_user.status == 'DONE':  # '수령 완료' 이면 모든 유저 status 가 True
                 status_proceeding = True
-            elif chat_user.status == status_list[
-                idx + 1] or chat_user.status == 'DELETED':  # DELETED -> 이미 방이 DONE이 되었다는 뜻이므로 무조건 TRUE 출력
+            elif chat_user.status == status_list[idx + 1] or chat_user.status == 'DELETED':
                 status_proceeding = True
             chat_user = chat_user.__dict__
             chat_user['status'] = status_proceeding

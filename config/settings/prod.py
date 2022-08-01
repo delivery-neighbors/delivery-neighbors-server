@@ -10,10 +10,10 @@ CSRF_TRUSTED_ORIGINS = ['https://baedalius.com']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'deliveryNeighbors',
-        'USER': 'dnuser',
-        'PASSWORD': 'dnpass',
-        'HOST': 'db',
+        'NAME': 'baedaliusdb',
+        'USER': 'admin',
+        'PASSWORD': 'mariadb12',
+        'HOST': 'baedaliusdb.cbuqzssoipo8.ap-northeast-2.rds.amazonaws.com',
         'PORT': 3306,
     }
 }
