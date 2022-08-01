@@ -27,8 +27,8 @@ from neighbor.models import UserReliability
 
 from config.settings.base import SOCIAL_OAUTH_CONFIG
 
-# BASE_URL = "https://baedalius.com/"  # deploy version
-BASE_URL = "http://localhost:8000/"  # local version
+BASE_URL = "https://baedalius.com/"  # deploy version
+# BASE_URL = "http://localhost:8000/"  # local version
 
 KAKAO_CLIENT_ID = SOCIAL_OAUTH_CONFIG['KAKAO_REST_API_KEY']
 KAKAO_REDIRECT_URI = f"{BASE_URL}{SOCIAL_OAUTH_CONFIG['KAKAO_REDIRECT_URI']}"
