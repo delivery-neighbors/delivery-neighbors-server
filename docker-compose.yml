@@ -9,7 +9,6 @@ services:
       - ./static/:/django/deliveryNeighbors/static
     depends_on:
       - web
-
   web:
     build:
       context: .
@@ -28,4 +27,8 @@ services:
     restart: always
     environment:
       - TZ=Asia/Seoul
+  redis:
+    image: redis:5
+    ports:
+      - "6379:6379"
 
