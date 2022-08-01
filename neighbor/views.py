@@ -24,8 +24,8 @@ from neighbor.models import Review, UserReview, Address, Search, ChatUserReview,
 from neighbor.serializers import ReviewSerializer, UserSerializer, UserReviewSerializer, ReviewRetrieveSerializer, \
     UserAddressSerializer, UserUpdateSerializer, UserSearchSerializer, MyPageSerializer
 
-BASE_URL = "https://baedalius.com/"  # deploy version
-# BASE_URL = "http://localhost:8000/"  # local version
+# BASE_URL = "https://baedalius.com/"  # deploy version
+BASE_URL = "http://localhost:8000/"  # local version
 
 
 class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):

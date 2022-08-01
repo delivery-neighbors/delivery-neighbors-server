@@ -1,7 +1,7 @@
 from django.urls import path
 
-from . import consumers
+from chatting import consumers
 
 urlpatterns = [
-    path('ws/chatting/<str:room_name>/', consumers.ChatConsumer.as_asgi()),
+    path('ws/chatting/<str:room_name>/<int:user_id>/', consumers.ChatConsumer.as_asgi()),
 ]

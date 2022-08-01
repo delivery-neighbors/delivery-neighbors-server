@@ -6,6 +6,7 @@ import requests
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView
+from rest_framework.permissions import AllowAny
 
 from chat.models import ChatUser, Room
 from config.settings.base import TOSS_PAYMENTS_CONFIG
@@ -18,6 +19,7 @@ TOSS_SECRET_KEY = TOSS_PAYMENTS_CONFIG['TOSS_SECRET_KEY']
 
 
 class PayCreateListAPIView(ListCreateAPIView):
+    permission_classes = [AllowAny]
     queryset = Pay.objects.all()
     serializer_class = PaySerializer
 

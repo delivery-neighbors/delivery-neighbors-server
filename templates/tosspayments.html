@@ -10,19 +10,18 @@
     const url = new URL(document.location.href);
     const urlParams = url.searchParams;
     const chat_user = urlParams.get('chatuser')
-    document.write("chatuser: " + chat_user);
+    document.write("로딩중...");
 </script>
 <script>
     $.ajax({
         type: "GET",
-        url: `https://baedalius.com/payment/toss/info/${chat_user}`,
+        url: `http://localhost:8000/payment/toss/info/${chat_user}`,
         datatype: 'json',
 
         success: function (response) {
-            data = response.data;
-            amount = data['amount'];
+            var data = response.data;
 
-            var clientKey = 'test_ck_lpP2YxJ4K87vLWB7AWmrRGZwXLOb' // 테스트용 클라이언트 키
+            var clientKey = 'test_ck_lpP2YxJ4K87vLWB7AWmrRGZwXLOb'
 
             var tossPayments = TossPayments(clientKey)
             tossPayments.requestPayment('카드', {
@@ -30,8 +29,8 @@
                 orderId: data['order_id'],
                 orderName: data['room_name'],
                 customerName: data['username'],
-                successUrl: 'https://baedalius.com/payment/toss/confirm/',
-                failUrl: 'https://baedalius.com/payment/toss/fail/',
+                successUrl: 'http://localhost:8000/payment/toss/confirm/',
+                failUrl: 'http://localhost:8000/payment/toss/fail/',
             });
         },
         error: function(err){

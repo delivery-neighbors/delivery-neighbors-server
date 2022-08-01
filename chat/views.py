@@ -13,6 +13,7 @@ from config.authentication import CustomJWTAuthentication
 from haversine import haversine, Unit
 
 from neighbor.models import Address, Search, UserReliability, ChatUserReview
+from payment.models import Pay
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
@@ -574,22 +575,23 @@ class RoomWithUserStatusListView(ListAPIView):
         room_status = room.status
         leader = room.leader
 
-        status_dict = {"JOINED": "주문 확정 중", "CONFIRMED": "결제 중", "PAY_DONE": "수령 중", "DONE": "수령 완료"}
+        status_dict = {"JOINED": "주문 확정 중", "CONFIRMED": "결제 중", "PAY_DONE": "수령 중",
+                       "DONE": "수령 완료", "temp": "temp"}
         status_list = list(status_dict.keys())
         status_value = status_dict.get(room_status, "수령 완료")
         idx = status_list.index(room_status)  # status 의 인덱스 값
 
-        joined_user = ChatUser.objects.filter(room=pk).exclude(user=leader)
+        joined_user = ChatUser.objects.filter(room=pk)
         for chat_user in joined_user:
             status_proceeding = False
             if chat_user.status == 'DONE':  # '수령 완료' 이면 모든 유저 status 가 True
                 status_proceeding = True
-            elif chat_user.status == status_list[idx + 1] or chat_user.status == 'DELETED':  # DELETED -> 이미 방이 DONE이 되었다는 뜻이므로 무조건 TRUE 출력
+            elif chat_user.status == status_list[idx + 1] or chat_user.status == 'DELETED':
                 status_proceeding = True
             chat_user = chat_user.__dict__
             chat_user['status'] = status_proceeding
 
-        serializer = ChatUserStatusSerializer(instance= joined_user, many=True)
+        serializer = ChatUserStatusSerializer(instance=joined_user, many=True)
         return Response({"status": status.HTTP_200_OK, "room_status": status_value, "user_status": serializer.data})
 
 
@@ -601,9 +603,31 @@ class MyInfoByRoomAPIView(ListAPIView):
 
         my_data = {
             "id": chat_user.id,
-            "is_leader": True if user_id==room.leader.id else False,
+            "is_leader": True if user_id == room.leader.id else False,
             "status": chat_user.status
         }
 
         serializer = MyInfoByRoomSerializer(room)
         return Response({"status": status.HTTP_200_OK, "room": serializer.data, "user": my_data})
+
+
+class PickupAddrView(RetrieveAPIView):
+    def get(self, reqeust, room_id):
+        pickup_addr = Room.objects.get(id=room_id).pickup_address
+        return Response({"status": status.HTTP_200_OK, "addr": pickup_addr})
+
+
+class ChatUserPayInfoAPIView(ListAPIView):
+    def get(self, request, pk):
+        room = Room.objects.get(id=pk)
+        leader = room.leader
+        joined_user = ChatUser.objects.filter(room=room).exclude(user=leader)
+
+        for chat_user in joined_user:
+            amount = Pay.objects.get(chat_user=chat_user).amount
+
+            chat_user = chat_user.__dict__
+            chat_user['amount'] = amount
+
+        serializer = ChatUserPayInfoSerializer(instance=joined_user, many=True)
+        return Response({"status": status.HTTP_200_OK, "data": serializer.data})
