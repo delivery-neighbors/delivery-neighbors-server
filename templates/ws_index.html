@@ -6,22 +6,15 @@
 </head>
 <body>
     What chat room would you like to enter?<br>
-    <input id="room-name-input" type="text" size="100"><br>
-    <input id="user-id-input" type="text" size="100"><br>
+    <input id="room-id-input" type="text" size="100"><br>
+    <input id="chat-user-id-input" type="text" size="100"><br>
     <input id="room-name-submit" type="button" value="Enter">
 
     <script>
-        document.querySelector('#room-name-input').focus();
-        document.querySelector('#room-name-input').onkeyup = function(e) {
-            if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#room-name-submit').click();
-            }
-        };
-
         document.querySelector('#room-name-submit').onclick = function(e) {
-            var roomName = document.querySelector('#room-name-input').value;
-            var userId = document.querySelector('#user-id-input').value;
-            window.location.pathname = '/chatting/' + roomName + '/' + userId + '/';
+            var roomId = document.querySelector('#room-id-input').value;
+            var chatUserId = document.querySelector('#chat-user-id-input').value;
+            window.location.pathname = '/chatting/' + roomId + '/' + chatUserId + '/';
         };
     </script>
 </body>

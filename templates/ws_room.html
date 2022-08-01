@@ -5,51 +5,58 @@
     <title>Chat Room</title>
 </head>
 <body>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
-    {{ room_name|json_script:"room-name" }}
-    {{ user_id|json_script:"user-id" }}
-    <script>
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
-        const userId = JSON.parse(document.getElementById('user-id').textContent);
-        const local_storage = localStorage
+<textarea id="chat-log" cols="100" rows="20"></textarea><br>
+<input id="chat-message-input" type="text" size="100"><br>
+<input id="chat-message-submit" type="button" value="Send">
+{{ room_id|json_script:"room-id" }}
+{{ chat_user_id|json_script:"chat-user-id" }}
+<script>
+    const roomId = JSON.parse(document.getElementById('room-id').textContent);
+    const chatUserId = JSON.parse(document.getElementById('chat-user-id').textContent);
+    {#const local_storage = localStorage;#}
+    {#const chat_storage = [];#}
 
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chatting/'
-            + roomName
-            + '/'
-            + userId
-            + '/'
-        );
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/chatting/'
+        + roomId
+        + '/'
+        + chatUserId
+        + '/'
+    );
 
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
-        };
+    {#const chat_data = JSON.parse(local_storage.getItem('chat'));#}
+    {#document.querySelector('#chat-log').value += (chat_data['message'] + '\n');#}
 
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        document.querySelector('#chat-log').value += (data.message + '\n');
+    };
 
-        document.querySelector('#chat-message-input').focus();
-        document.querySelector('#chat-message-input').onkeyup = function(e) {
-            if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#chat-message-submit').click();
-            }
-        };
+    chatSocket.onclose = function (e) {
+        console.error('Chat socket closed unexpectedly');
+    };
 
-        document.querySelector('#chat-message-submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat-message-input');
-            const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
-            local_storage.setItem("message", message)
-            messageInputDom.value = '';
-        };
-    </script>
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function (e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function (e) {
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value;
+        chatSocket.send(JSON.stringify({
+            'message': message
+        }));
+
+        {#// TODO 대화내용 저장#}
+        {#chat_storage.append(message)#}
+        {#local_storage.setItem('chat', JSON.stringify(chat_storage));#}
+        messageInputDom.value = '';
+    };
+</script>
 </body>
 </html>
