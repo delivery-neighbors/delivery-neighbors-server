@@ -621,13 +621,17 @@ class ChatUserPayInfoAPIView(ListAPIView):
     def get(self, request, pk):
         room = Room.objects.get(id=pk)
         leader = room.leader
-        joined_user = ChatUser.objects.filter(room=room).exclude(user=leader)
+        confirm_enabled = False
 
-        for chat_user in joined_user:
-            amount = Pay.objects.get(chat_user=chat_user).amount
+        pay_created = Pay.objects.filter(chat_user__room=pk).exclude(chat_user__user=leader)  # 방장을 제외한 결제 정보
+        for pay in pay_created:
+            pay_info = pay.__dict__
+            pay_info['username'] = pay.chat_user.user.username
+            pay_info['user_avatar'] = pay.chat_user.user.avatar
+            pay_info['amount'] = pay.amount
 
-            chat_user = chat_user.__dict__
-            chat_user['amount'] = amount
+        if len(pay_created) == room.max_participant_num - 1:
+            confirm_enabled = True
 
-        serializer = ChatUserPayInfoSerializer(instance=joined_user, many=True)
-        return Response({"status": status.HTTP_200_OK, "data": serializer.data})
+        serializer = ChatUserPayInfoSerializer(instance=pay_created, many=True)
+        return Response({"status": status.HTTP_200_OK, "confirm_enabled": confirm_enabled, "data": serializer.data})
