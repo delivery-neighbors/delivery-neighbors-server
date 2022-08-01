@@ -45,7 +45,7 @@ class RoomGetCreateAPIView(ListCreateAPIView):
             condition = (
                     Q(pickup_latitude__range=(request_latitude - Decimal(0.005), request_latitude + Decimal(0.005))) &
                     Q(pickup_longitude__range=(
-                    request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075)))
+                        request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075)))
             )
             rooms_first_filtering = Room.objects.filter(condition)
 
@@ -532,7 +532,7 @@ class ChatDoneView(RetrieveAPIView):
             chat_done_user = ChatUser.objects.filter(room=room, status="DONE")
 
             # 모든 ChatUser 상태 변경 시 Room 상태 변경
-            if len(chat_done_user) == room.max_participant_num-1:
+            if len(chat_done_user) == room.max_participant_num - 1:
                 room.status = "DONE"
                 room.save()
 
@@ -564,12 +564,13 @@ class RoomWithUserStatusListView(ListAPIView):
             status_proceeding = False
             if chat_user.status == 'DONE':  # '수령 완료' 이면 모든 유저 status 가 True
                 status_proceeding = True
-            elif chat_user.status == status_list[idx + 1] or chat_user.status == 'DELETED':  # DELETED -> 이미 방이 DONE이 되었다는 뜻이므로 무조건 TRUE 출력
+            elif chat_user.status == status_list[
+                idx + 1] or chat_user.status == 'DELETED':  # DELETED -> 이미 방이 DONE이 되었다는 뜻이므로 무조건 TRUE 출력
                 status_proceeding = True
             chat_user = chat_user.__dict__
             chat_user['status'] = status_proceeding
 
-        serializer = ChatUserStatusSerializer(instance= joined_user, many=True)
+        serializer = ChatUserStatusSerializer(instance=joined_user, many=True)
         return Response({"status": status.HTTP_200_OK, "room_status": status_value, "user_status": serializer.data})
 
 
@@ -581,9 +582,15 @@ class MyInfoByRoomAPIView(ListAPIView):
 
         my_data = {
             "id": chat_user.id,
-            "is_leader": True if user_id==room.leader.id else False,
+            "is_leader": True if user_id == room.leader.id else False,
             "status": chat_user.status
         }
 
         serializer = MyInfoByRoomSerializer(room)
         return Response({"status": status.HTTP_200_OK, "room": serializer.data, "user": my_data})
+
+
+class PickupAddrView(RetrieveAPIView):
+    def get(self, reqeust, room_id):
+        pickup_addr = Room.objects.get(id=room_id).pickup_address
+        return Response({"status": status.HTTP_200_OK, "addr": pickup_addr})

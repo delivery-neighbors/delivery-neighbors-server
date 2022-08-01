@@ -37,5 +37,8 @@ urlpatterns = [
     path('room/<int:pk>/status/', views.RoomWithUserStatusListView.as_view(), name='chat-status'),
 
     # 방 초기 정보
-    path('room/<int:pk>/myinfo/', views.MyInfoByRoomAPIView.as_view(), name='chat-my-info')
+    path('room/<int:pk>/myinfo/', views.MyInfoByRoomAPIView.as_view(), name='chat-my-info'),
+
+    # 수령 장소 조회
+    path('room/<int:room_id>/pickup/', views.PickupAddrView.as_view(), name='pickup-addr'),
 ]
