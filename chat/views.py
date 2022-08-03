@@ -331,7 +331,7 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
         except ChatUser.DoesNotExist:
             # serializer 없이 직접 생성
-            if len(ChatUser.objects.filter(room=room, status="JOINED")) >= room.max_participant_num:
+            if len(ChatUser.objects.filter(room=room)) >= room.max_participant_num:
                 return Response({"status": status.HTTP_403_FORBIDDEN})
 
             ChatUser.objects.create(

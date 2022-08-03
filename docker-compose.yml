@@ -9,6 +9,7 @@ services:
       - ./static/:/django/deliveryNeighbors/static
     depends_on:
       - web
+      - redis
   web:
     build:
       context: .
