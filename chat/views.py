@@ -47,7 +47,7 @@ class RoomGetCreateAPIView(ListCreateAPIView):
                     Q(pickup_longitude__range=(
                         request_longitude - Decimal(0.0075), request_longitude + Decimal(0.0075)))
             )
-            rooms_first_filtering = Room.objects.filter(condition)
+            rooms_first_filtering = Room.objects.filter(condition).exclude(status="DONE").order_by('-created_at')
 
             # 500m 이내 채팅방 2차 필터링
             rooms_within_500meters = [room for room in rooms_first_filtering
@@ -612,5 +612,6 @@ class MyInfoByRoomAPIView(ListAPIView):
 
 class PickupAddrView(RetrieveAPIView):
     def get(self, reqeust, room_id):
-        pickup_addr = Room.objects.get(id=room_id).pickup_address
-        return Response({"status": status.HTTP_200_OK, "addr": pickup_addr})
+        room = Room.objects.get(id=room_id)
+        serializer = PickupLocationSerializer(instance=room)
+        return Response({"status": status.HTTP_200_OK, "addr": serializer.data})

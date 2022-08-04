@@ -123,3 +123,9 @@ class MyInfoByRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = ['id', 'room_name', 'status']
+
+
+class PickupLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ['pickup_address', 'pickup_latitude', 'pickup_longitude']
