@@ -25,7 +25,8 @@ class RoomListSerializer(serializers.ModelSerializer):
             'participant_num',
             'max_participant_num',
             'delivery_fee',
-            'distance'
+            'distance',
+            'status'
         ]
 
 
@@ -126,6 +127,12 @@ class MyInfoByRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = ['id', 'room_name', 'status']
+
+
+class PickupLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ['pickup_address', 'pickup_latitude', 'pickup_longitude']
 
 
 class ChatUserPayInfoSerializer(serializers.ModelSerializer):
