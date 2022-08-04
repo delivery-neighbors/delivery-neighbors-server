@@ -5,6 +5,9 @@ from config.authentication import CustomJWTAuthentication
 
 
 # 채팅방 목록(메인 화면) serializer
+from payment.models import Pay
+
+
 class RoomListSerializer(serializers.ModelSerializer):
     distance = serializers.IntegerField()
     is_leader = serializers.BooleanField()
@@ -22,7 +25,8 @@ class RoomListSerializer(serializers.ModelSerializer):
             'participant_num',
             'max_participant_num',
             'delivery_fee',
-            'distance'
+            'distance',
+            'status'
         ]
 
 
@@ -129,3 +133,13 @@ class PickupLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = ['pickup_address', 'pickup_latitude', 'pickup_longitude']
+
+
+class ChatUserPayInfoSerializer(serializers.ModelSerializer):
+    username = serializers.CharField()
+    user_avatar = serializers.URLField()
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = Pay
+        fields = ['id', 'username', 'user_avatar', 'amount']

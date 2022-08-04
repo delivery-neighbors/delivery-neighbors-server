@@ -21,7 +21,7 @@ urlpatterns = [
     # 실시간 위치 정보 입력 & 특정 채팅방에 속한 모든 유저 위치 조회
     path('room/cur_location/', views.CurrentLocationView.as_view(), name='user-location'),
 
-    # 참여중인 채팅방 조회
+    # 참여 중인 채팅방 조회
     path('room/joined/', views.ChatJoinedView.as_view(), name='chat-joined'),
 
     # 수령 완료한 채팅방 조회
@@ -41,4 +41,7 @@ urlpatterns = [
 
     # 수령 장소 조회
     path('room/<int:room_id>/pickup/', views.PickupAddrView.as_view(), name='pickup-addr'),
+
+    # 채팅 유저 주문 금액 조회
+    path('room/<int:pk>/payinfo/', views.ChatUserPayInfoAPIView.as_view(), name='chat-pay-info')
 ]

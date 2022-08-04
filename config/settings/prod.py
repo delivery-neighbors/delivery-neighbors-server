@@ -18,6 +18,16 @@ DATABASES = {
     }
 }
 
+# Channels
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'config': {
+            "hosts": [('baedalius.com', 6379)],
+        }
+    }
+}
+
 # ASGI application
 ASGI_APPLICATION = 'config.asgi.prod.application'
 # WSGI application

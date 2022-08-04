@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime, date, time
+from datetime import timedelta, datetime
 from decimal import Decimal
 
 from django.db.models import Q
@@ -13,6 +13,7 @@ from config.authentication import CustomJWTAuthentication
 from haversine import haversine, Unit
 
 from neighbor.models import Address, Search, UserReliability, ChatUserReview
+from payment.models import Pay
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
@@ -337,7 +338,7 @@ class ChatUserView(ListCreateAPIView, DestroyAPIView):
 
         except ChatUser.DoesNotExist:
             # serializer 없이 직접 생성
-            if len(ChatUser.objects.filter(room=room, status="JOINED")) >= room.max_participant_num:
+            if len(ChatUser.objects.filter(room=room)) >= room.max_participant_num:
                 return Response({"status": status.HTTP_403_FORBIDDEN})
 
             ChatUser.objects.create(
@@ -629,3 +630,23 @@ class PickupAddrView(RetrieveAPIView):
         room = Room.objects.get(id=room_id)
         serializer = PickupLocationSerializer(instance=room)
         return Response({"status": status.HTTP_200_OK, "addr": serializer.data})
+
+
+class ChatUserPayInfoAPIView(ListAPIView):
+    def get(self, request, pk):
+        room = Room.objects.get(id=pk)
+        leader = room.leader
+        confirm_enabled = False
+
+        pay_created = Pay.objects.filter(chat_user__room=pk).exclude(chat_user__user=leader)  # 방장을 제외한 결제 정보
+        for pay in pay_created:
+            pay_info = pay.__dict__
+            pay_info['username'] = pay.chat_user.user.username
+            pay_info['user_avatar'] = pay.chat_user.user.avatar
+            pay_info['amount'] = pay.amount
+
+        if len(pay_created) == room.max_participant_num - 1:
+            confirm_enabled = True
+
+        serializer = ChatUserPayInfoSerializer(instance=pay_created, many=True)
+        return Response({"status": status.HTTP_200_OK, "confirm_enabled": confirm_enabled, "data": serializer.data})
