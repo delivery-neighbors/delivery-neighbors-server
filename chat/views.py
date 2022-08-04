@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date, time
 from decimal import Decimal
 
 from django.db.models import Q
@@ -75,18 +75,25 @@ class RoomGetCreateAPIView(ListCreateAPIView):
                 now = datetime.now()
                 created_at = room.created_at
 
-                if now - created_at >= timedelta(days=7):
+                if now - created_at >= timedelta(days=365):
                     # strftime() -> datetime 형식화 메소드
-                    # %b -> 달을 짧게 출력, %d -> 날 출력
-                    room.created_at = created_at.strftime("%b %d")
+                    # %F -> %Y(년도)-%m(월)-%d(일) 와 동일
+                    room.created_at = created_at.strftime("%F")
 
                 elif now - created_at >= timedelta(days=1):
-                    # %a 옵션 -> datetime 객체의 요일을 짧게 출력
-                    room.created_at = created_at.strftime("%a")
+                    # %b -> 달을 짧게 출력, %d -> 날 출력
+                    room.created_at = created_at.strftime("%m.%d")
+
+                elif now - created_at >= timedelta(hours=1):
+                    created_at = int((now - created_at).seconds / 3600)
+                    room.created_at = str(created_at) + "시간 전"
+
+                elif now - created_at > timedelta(minutes=1):
+                    created_at = int((now - created_at).seconds / 60)
+                    room.created_at = str(created_at) + "분 전"
 
                 else:
-                    # %H -> 시간을 0~23 사용해 출력, %M -> 분 출력
-                    room.created_at = created_at.strftime("%H:%M")
+                    room.created_at = "방금 전"
 
                 # 1인당 배달비 계산
                 delivery_fee = room.delivery_fee
@@ -452,18 +459,25 @@ class ChatJoinedView(ListAPIView):
             now = datetime.now()
             created_at = room.created_at
 
-            if now - created_at >= timedelta(days=7):
+            if now - created_at >= timedelta(days=365):
                 # strftime() -> datetime 형식화 메소드
-                # %b -> 달을 짧게 출력, %d -> 날 출력
-                room.created_at = created_at.strftime("%b %d")
+                # %F -> %Y(년도)-%m(월)-%d(일) 와 동일
+                room.created_at = created_at.strftime("%F")
 
             elif now - created_at >= timedelta(days=1):
-                # %a 옵션 -> datetime 객체의 요일을 짧게 출력
-                room.created_at = created_at.strftime("%a")
+                # %b -> 달을 짧게 출력, %d -> 날 출력
+                room.created_at = created_at.strftime("%m.%d")
+
+            elif now - created_at >= timedelta(hours=1):
+                created_at = int((now - created_at).seconds / 3600)
+                room.created_at = str(created_at) + "시간 전"
+
+            elif now - created_at > timedelta(minutes=1):
+                created_at = int((now - created_at).seconds / 60)
+                room.created_at = str(created_at) + "분 전"
 
             else:
-                # %H -> 시간을 0~23 사용해 출력, %M -> 분 출력
-                room.created_at = created_at.strftime("%H:%M")
+                room.created_at = "방금 전"
 
             # 1인당 배달비 계산
             delivery_fee = room.delivery_fee
