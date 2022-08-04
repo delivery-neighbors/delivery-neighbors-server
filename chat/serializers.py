@@ -25,7 +25,8 @@ class RoomListSerializer(serializers.ModelSerializer):
             'participant_num',
             'max_participant_num',
             'delivery_fee',
-            'distance'
+            'distance',
+            'status'
         ]
 
 
