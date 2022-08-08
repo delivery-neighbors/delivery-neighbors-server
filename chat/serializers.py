@@ -108,9 +108,11 @@ class ChatUserSerializer(serializers.ModelSerializer):
 
 
 class CurLocationSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
+
     class Meta:
         model = Location
-        fields = ['user', 'cur_latitude', 'cur_longitude']
+        fields = ['user', 'username', 'cur_latitude', 'cur_longitude']
 
 
 class ChatUserStatusSerializer(serializers.ModelSerializer):

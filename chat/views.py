@@ -385,8 +385,12 @@ class ChatListDeleteView(RetrieveAPIView):
 
 
 class CurrentLocationView(ListCreateAPIView):
-    queryset = Location.objects.all()
-    serializer_class = CurLocationSerializer
+    def get(self, request):
+        room_id = int(request.GET['room_id'])
+        cur_location_list = Location.objects.filter(room_id=room_id)
+        serializer = CurLocationSerializer(instance=cur_location_list, many=True)
+
+        return Response({"status": status.HTTP_200_OK, "location_list": serializer.data})
 
     def post(self, request):
         room_id = request.data['room_id']
@@ -398,34 +402,16 @@ class CurrentLocationView(ListCreateAPIView):
         try:
             chat_user = ChatUser.objects.get(room_id=room_id, user_id=user_id)
 
-            try:
-                cur_location_obj = Location.objects.get(room_id=room_id, user_id=user_id)
-                # 전달 받은 채팅방 객체와 유저 객체 값을 갖는 Location 객체가 있으면
-                # 현재 위도,경도 값에 새롭게 요청 받은 위도,경도 값을 할당한 후 save()
-                cur_location_obj.cur_latitude = cur_latitude
-                cur_location_obj.cur_longitude = cur_longitude
-                cur_location_obj.save()
-                return Response({"status": status.HTTP_200_OK})
-
-            except Location.DoesNotExist:
-
-                Location.objects.create(
-                    room=Room.objects.get(id=room_id),
-                    user=User.objects.get(id=user_id),
-                    cur_latitude=cur_latitude,
-                    cur_longitude=cur_longitude
-                )
-                return Response({"status": status.HTTP_201_CREATED})
+            cur_location_obj = Location.objects.get_or_create(room_id=room_id, user_id=user_id)
+            # 전달 받은 채팅방 객체와 유저 객체 값을 갖는 Location 객체가 있으면
+            # 현재 위도,경도 값에 새롭게 요청 받은 위도,경도 값을 할당한 후 save()
+            cur_location_obj[0].cur_latitude = cur_latitude
+            cur_location_obj[0].cur_longitude = cur_longitude
+            cur_location_obj[0].save()
+            return Response({"status": status.HTTP_200_OK})
 
         except ChatUser.DoesNotExist:
             return Response({"status": status.HTTP_400_BAD_REQUEST})
-
-    def get(self, request):
-        room_id = int(request.GET['room_id'])
-        cur_location_list = Location.objects.filter(room_id=room_id)
-        serializer = CurLocationSerializer(instance=cur_location_list, many=True)
-
-        return Response({"status": status.HTTP_200_OK, "location_list": serializer.data})
 
 
 class ChatJoinedView(ListAPIView):
