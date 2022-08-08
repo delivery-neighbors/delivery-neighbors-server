@@ -3,7 +3,7 @@ from django.db import models
 
 class Category(models.Model):
     category_name = models.CharField(max_length=32)
-    category_background_img = models.ImageField(default='category/1.jpg', upload_to='images/category')
+    category_background_img = models.URLField()
 
 
 class ChatUser(models.Model):
