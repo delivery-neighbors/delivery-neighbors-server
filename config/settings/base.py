@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     # channels
     'channels',
 
+    # S3
+    'storages',
+
     # jwt
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
@@ -148,9 +151,9 @@ USE_TZ = False
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-# Media
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+# # Media
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_URL = '/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -212,3 +215,14 @@ TOSS_PAYMENTS_CONFIG = {
     'TOSS_API_KEY': secrets.get_secret('TOSS_API_KEY'),
     'TOSS_SECRET_KEY': secrets.get_secret('TOSS_SECRET_KEY')
 }
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+AWS_ACCESS_KEY_ID = secrets.get_secret('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = secrets.get_secret('AWS_SECRET_ACCESS_KEY')
+
+AWS_REGION = 'ap-northeast-2'
+AWS_STORAGE_BUCKET_NAME = 'deliveryneighborsbucket'
+AWS_S3_CUSTOM_DOMAIN = "%s.s3.%s.amazonaws.com" % (AWS_STORAGE_BUCKET_NAME, AWS_REGION)
+
+AWS_QUERYSTRING_AUTH = False

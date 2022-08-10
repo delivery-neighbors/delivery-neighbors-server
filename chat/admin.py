@@ -15,7 +15,7 @@ class ChatUserAdmin(admin.ModelAdmin):
 
 
 class LocationAdmin(admin.ModelAdmin):
-    list_display = ['id', 'room', 'user']
+    list_display = ['id', 'room', 'user', 'cur_latitude', 'cur_longitude']
 
 
 admin.site.register(Category, CategoryAdmin)

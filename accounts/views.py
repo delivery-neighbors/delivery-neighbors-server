@@ -46,11 +46,20 @@ class UserCreateAPIView(CreateAPIView):
         email = request.data['email']
         avatar = request.data['avatar']
 
-        user_data = {
-            'username': request.data['username'],
-            'email': email,
-            'password': make_password(request.data['password'])
-        }
+        if avatar:
+            user_data = {
+                'username': request.data['username'],
+                'email': email,
+                'password': make_password(request.data['password']),
+                'avatar': avatar
+            }
+
+        else:
+            user_data = {
+                'username': request.data['username'],
+                'email': email,
+                'password': make_password(request.data['password']),
+            }
 
         serializer = self.serializer_class(data=user_data)
 
@@ -66,14 +75,14 @@ class UserCreateAPIView(CreateAPIView):
             return Response({"status": status.HTTP_400_BAD_REQUEST})
 
         # 아바타가 있으면 이미지 저장
-        if avatar:
-            imgdata = base64.b64decode(avatar)
-            with open(f"media/images/avatar/{email}-avatar.jpg", 'wb') as f:
-                f.write(imgdata)
-
-            user = User.objects.get(email=email)
-            user.avatar = f"images/avatar/{email}-avatar.jpg"
-            user.save()
+        # if avatar:
+        #     imgdata = base64.b64decode(avatar)
+        #     with open(f"media/images/avatar/{email}-avatar.jpg", 'wb') as f:
+        #         f.write(imgdata)
+        #
+        #     user = User.objects.get(email=email)
+        #     user.avatar = f"images/avatar/{email}-avatar.jpg"
+        #     user.save()
 
         return JsonResponse(
             {"status": status.HTTP_201_CREATED, "user": user.pk, "access": access, "refresh": refresh})

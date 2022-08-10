@@ -1,5 +1,6 @@
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.db import models
+from storages.backends.s3boto3 import S3Boto3Storage
 
 
 class UserManager(BaseUserManager):
@@ -41,8 +42,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         null=False
     )
-    avatar = models.ImageField(null=True, blank=True, upload_to='images/avatar/',
-                               default='images/avatar/default_img.jpg')
+    avatar = models.ImageField(storage=S3Boto3Storage,
+                               upload_to='media/avatar/',
+                               default='media/avatar/default_img.jpg')
     date_joined = models.DateTimeField(auto_now_add=True)
 
     is_active = models.BooleanField(default=True)
@@ -58,4 +60,3 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         db_table = "user"
-
