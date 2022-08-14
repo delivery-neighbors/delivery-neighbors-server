@@ -263,7 +263,7 @@ def kakao_callback(request):
                 f"{kakao_account['email']}-avatar.jpg", ContentFile(avatar_request.content)
             )
         else:  # 기본 이미지일 때 -> 저장된 이미지 적용
-            user.avatar = "images/avatar/default_img.jpg"
+            user.avatar = "media/avatar/default_img.jpg"
         user.save()
 
         accept_status = accept.status_code
