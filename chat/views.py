@@ -573,7 +573,6 @@ class RoomWithUserStatusListView(ListAPIView):
     def get(self, request, pk):
         room = Room.objects.get(id=pk)
         room_status = room.status
-        leader = room.leader
 
         status_dict = {"JOINED": "주문 확정 중", "CONFIRMED": "결제 중", "PAY_DONE": "수령 중",
                        "DONE": "수령 완료", "temp": "temp"}
