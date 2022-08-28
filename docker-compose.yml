@@ -17,8 +17,8 @@ services:
     command:
       bash -c "python manage.py makemigrations
       && python manage.py migrate
-      && python manage.py runserver 0.0.0.0:8000
       && daphne -b 0.0.0.0 -p 8000 config.asgi.prod:application"
+#      && python manage.py runserver 0.0.0.0:8000
 #      && gunicorn --bind 0.0.0.0:8000 config.wsgi:application --timeout 240"
     ports:
       - "8000:8000"
