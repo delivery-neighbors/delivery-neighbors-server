@@ -30,5 +30,6 @@ services:
       - TZ=Asia/Seoul
   redis:
     image: redis:5
+    command: redis-server --port 6379
     ports:
       - "6379:6379"
