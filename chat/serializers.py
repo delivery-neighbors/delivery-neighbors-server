@@ -11,7 +11,7 @@ from payment.models import Pay
 class RoomListSerializer(serializers.ModelSerializer):
     distance = serializers.IntegerField()
     is_leader = serializers.BooleanField()
-    leader_avatar = serializers.URLField(source='leader.avatar')
+    leader_avatar = serializers.ImageField(source='leader.avatar')
     participant_num = serializers.IntegerField()
 
     class Meta:
@@ -34,7 +34,7 @@ class RoomListSerializer(serializers.ModelSerializer):
 class RoomRetrieveSerializer(serializers.ModelSerializer):
     category_background_img = serializers.URLField(source='category.category_background_img')
     leader_name = serializers.CharField(source='leader.username')
-    leader_avatar = serializers.URLField(source='leader.avatar')
+    leader_avatar = serializers.ImageField(source='leader.avatar')
     participant_num = serializers.IntegerField()
 
     class Meta:
@@ -74,7 +74,7 @@ class RoomRetrieveSerializer(serializers.ModelSerializer):
 
 class RoomDoneSerializer(serializers.ModelSerializer):
     is_leader = serializers.BooleanField()
-    leader_avatar = serializers.URLField(source='leader.avatar')
+    leader_avatar = serializers.ImageField(source='leader.avatar')
     participant_num = serializers.IntegerField()
     review_status = serializers.BooleanField()
 
@@ -99,7 +99,7 @@ class RoomDoneSerializer(serializers.ModelSerializer):
 
 class ChatUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
-    user_avatar = serializers.URLField(source='user.avatar')
+    user_avatar = serializers.ImageField(source='user.avatar')
     review_status = serializers.IntegerField()
 
     class Meta:
@@ -116,13 +116,15 @@ class CurLocationSerializer(serializers.ModelSerializer):
 
 
 class ChatUserStatusSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id')
+    chatuser_id = serializers.IntegerField(source='id')
     name = serializers.CharField(source='user.username')
-    user_avatar = serializers.URLField(source='user.avatar')
+    user_avatar = serializers.ImageField(source='user.avatar')
     status = serializers.BooleanField()
 
     class Meta:
         model = ChatUser
-        fields = ['id', 'name', 'user_avatar', 'status']
+        fields = ['user_id', 'chatuser_id', 'name', 'user_avatar', 'status']
 
 
 class MyInfoByRoomSerializer(serializers.ModelSerializer):
@@ -139,7 +141,7 @@ class PickupLocationSerializer(serializers.ModelSerializer):
 
 class ChatUserPayInfoSerializer(serializers.ModelSerializer):
     username = serializers.CharField()
-    user_avatar = serializers.URLField()
+    user_avatar = serializers.ImageField()
     amount = serializers.IntegerField()
 
     class Meta:
