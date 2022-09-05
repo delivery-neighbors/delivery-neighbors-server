@@ -16,7 +16,7 @@
         const local_storage = localStorage
 
         const chatSocket = new WebSocket(
-            'ws://'
+            'wss://'
             + window.location.host
             + '/ws/chatting/'
             + roomId
@@ -25,13 +25,17 @@
             + '/'
         );
 
+        chatSocket.onopen = function(e) {
+            console.log('Websocket Open!!');
+        };
+
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
             document.querySelector('#chat-log').value += (data.message + '\n');
         };
 
         chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
+            console.error('Websocket Close!!');
         };
 
         document.querySelector('#chat-message-input').focus();
