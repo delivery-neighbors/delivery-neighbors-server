@@ -9,7 +9,7 @@ from chatting import routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.prod')
 
-django_application = get_default_application()
+# django_application = get_default_application()
 
 application = ProtocolTypeRouter({
     "websocket": AuthMiddlewareStack(
