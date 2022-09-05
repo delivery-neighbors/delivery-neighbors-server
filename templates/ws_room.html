@@ -8,22 +8,26 @@
     <textarea id="chat-log" cols="100" rows="20"></textarea><br>
     <input id="chat-message-input" type="text" size="100"><br>
     <input id="chat-message-submit" type="button" value="Send">
-    {{ room_name|json_script:"room-name" }}
+    {{ room_id|json_script:"room-id" }}
     {{ user_id|json_script:"user-id" }}
     <script>
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const roomId = JSON.parse(document.getElementById('room-id').textContent);
         const userId = JSON.parse(document.getElementById('user-id').textContent);
         const local_storage = localStorage
 
         const chatSocket = new WebSocket(
-            'ws://'
+            'wss://'
             + window.location.host
             + '/ws/chatting/'
-            + roomName
+            + roomId
             + '/'
             + userId
             + '/'
         );
+
+        chatSocket.onopen = function(e) {
+            console.log('Websocket Open!!');
+        };
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
@@ -31,7 +35,7 @@
         };
 
         chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
+            console.error('Websocket Close!!');
         };
 
         document.querySelector('#chat-message-input').focus();

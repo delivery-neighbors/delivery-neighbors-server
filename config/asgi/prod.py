@@ -1,25 +1,29 @@
 import os
+
+import django
+from django.core.asgi import get_asgi_application
+
 import chatting
 
 from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
-from django.core.asgi import get_asgi_application
-from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.routing import ProtocolTypeRouter, URLRouter, get_default_application
 
 from chatting import routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.prod')
+django.setup()
 
 django_application = get_asgi_application()
 
 application = ProtocolTypeRouter({
-    "https": django_application,
+    "http": django_application,
     "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             URLRouter(
-                chatting.routing.urlpatterns
+                chatting.routing.websocket_urlpatterns
             )
         )
-    ),
-})
+    )}
+)
 
