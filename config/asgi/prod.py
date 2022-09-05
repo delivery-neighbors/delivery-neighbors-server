@@ -12,13 +12,11 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.prod')
 django_application = get_default_application()
 
 application = ProtocolTypeRouter({
-    "http": django_application,
-    "websocket": AllowedHostsOriginValidator(
-        AuthMiddlewareStack(
+    "websocket": AuthMiddlewareStack(
             URLRouter(
-                chatting.routing.urlpatterns
+                chatting.routing.websocket_urlpatterns
             )
         )
-    ),
-})
+    }
+)
 
