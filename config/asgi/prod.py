@@ -1,4 +1,7 @@
 import os
+
+import django
+
 import chatting
 
 from channels.auth import AuthMiddlewareStack
@@ -8,8 +11,8 @@ from channels.routing import ProtocolTypeRouter, URLRouter, get_default_applicat
 from chatting import routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.prod')
-
-# django_application = get_default_application()
+django.setup()
+application = get_default_application()
 
 application = ProtocolTypeRouter({
     "websocket": AuthMiddlewareStack(
