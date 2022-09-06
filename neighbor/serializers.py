@@ -61,3 +61,11 @@ class UserSearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Search
         fields = ['id', 'search_content', 'created_at']
+
+
+class UserIdCheckSerializer(serializers.ModelSerializer):
+    user_id = serializers.CharField(source="id")
+
+    class Meta:
+        model = User
+        fields = ['user_id']

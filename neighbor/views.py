@@ -1,13 +1,9 @@
 from datetime import datetime
 from collections import Counter
 
-import ntpath
-
 import os
-from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.utils.dateformat import DateFormat
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import generics, status
@@ -21,8 +17,7 @@ from accounts.models import User
 from chat.models import ChatUser
 from config.authentication import CustomJWTAuthentication
 from neighbor.models import Review, UserReview, Address, Search, ChatUserReview, UserReliability
-from neighbor.serializers import ReviewSerializer, UserSerializer, UserReviewSerializer, ReviewRetrieveSerializer, \
-    UserAddressSerializer, UserUpdateSerializer, UserSearchSerializer, MyPageSerializer
+from neighbor.serializers import *
 
 # BASE_URL = "https://baedalius.com/"  # deploy version
 BASE_URL = "http://localhost:8000/"  # local version
@@ -302,3 +297,12 @@ def Top10_SearchedAPIView(request):
 
 def toss_view(request):
     return render(request, 'tosspayments.html')
+
+
+class UserIdCheckAPIView(RetrieveAPIView):
+    def get(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+        user = User.objects.get(id=user_id)
+        serializer = UserIdCheckSerializer(instance=user)
+        return Response({"status": status.HTTP_200_OK, "data": serializer.data})
+
