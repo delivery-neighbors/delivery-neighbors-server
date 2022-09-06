@@ -64,7 +64,7 @@ class UserSearchSerializer(serializers.ModelSerializer):
 
 
 class UserIdCheckSerializer(serializers.ModelSerializer):
-    user_id = serializers.CharField(source="id")
+    user_id = serializers.IntegerField(source="id")
 
     class Meta:
         model = User
