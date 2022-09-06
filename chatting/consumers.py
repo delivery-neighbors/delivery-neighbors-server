@@ -66,6 +66,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         user['chat_user_id'] = chat_user_id
         print(f"CHAT_MESSAGE >> event: {event}")
 
+        user['user_avatar'] = f"https://deliveryneighborsbucket.s3.ap-northeast-2.amazonaws.com/{user['avatar']}"
         serializers = ChattingUserSerializer(instance=user)
         print(f"CHAT_MESSAGE >> avatar: {user['avatar']}")
         print(f"CHAT_MESSAGE >> serializers: {serializers.data}")
