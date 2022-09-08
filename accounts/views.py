@@ -43,22 +43,28 @@ class UserCreateAPIView(CreateAPIView):
 
     def post(self, request, *args, **kwargs):
 
-        email = request.data['email']
-        avatar = request.data['avatar']
+        # email = request.data['email']
+        # avatar = request.data['avatar']
+        username = request.POST['username']
+        email = request.POST['email']
+        password = request.POST['password']
+        avatar = request.FILES.getlist('avatar')
 
         if avatar:
             user_data = {
-                'username': request.data['username'],
+                'username': username,
                 'email': email,
-                'password': make_password(request.data['password']),
-                'avatar': avatar
+                # 'password': make_password(request.data['password']),
+                'password': make_password(password),
+                'avatar': avatar[0]
             }
 
         else:
             user_data = {
                 'username': request.data['username'],
                 'email': email,
-                'password': make_password(request.data['password']),
+                # 'password': make_password(request.data['password']),
+                'password': make_password(password)
             }
 
         serializer = self.serializer_class(data=user_data)
