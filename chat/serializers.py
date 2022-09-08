@@ -116,13 +116,15 @@ class CurLocationSerializer(serializers.ModelSerializer):
 
 
 class ChatUserStatusSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id')
+    chatuser_id = serializers.IntegerField(source='id')
     name = serializers.CharField(source='user.username')
     user_avatar = serializers.ImageField(source='user.avatar')
     status = serializers.BooleanField()
 
     class Meta:
         model = ChatUser
-        fields = ['id', 'name', 'user_avatar', 'status']
+        fields = ['user_id', 'chatuser_id', 'name', 'user_avatar', 'status']
 
 
 class MyInfoByRoomSerializer(serializers.ModelSerializer):

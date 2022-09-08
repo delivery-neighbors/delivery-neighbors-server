@@ -30,6 +30,8 @@ SECRET_KEY = secrets.get_secret("SECRET_KEY")
 EMAIL_HOST_USER = secrets.get_secret("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = secrets.get_secret("EMAIL_HOST_PASSWORD")
 
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = 'true'
+
 INSTALLED_APPS = [
     # app
     'accounts',

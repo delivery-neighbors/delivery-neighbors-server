@@ -35,5 +35,8 @@ urlpatterns = [
     path('top_searched/', views.Top10_SearchedAPIView),
 
     # toss 웹뷰 테스트
-    path('tosspayments/', views.toss_view, name='toss_payment')
+    path('tosspayments/', views.toss_view, name='toss_payment'),
+
+    # 토큰으로 userid 조회
+    path('user/idcheck/', views.UserIdCheckAPIView.as_view(), name='user-id-check')
 ]

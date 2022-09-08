@@ -19,9 +19,9 @@
         };
 
         document.querySelector('#room-name-submit').onclick = function(e) {
-            var roomName = document.querySelector('#room-name-input').value;
+            var roomId = document.querySelector('#room-name-input').value;
             var userId = document.querySelector('#user-id-input').value;
-            window.location.pathname = '/chatting/' + roomName + '/' + userId + '/';
+            window.location.pathname = '/chatting/' + roomId + '/' + userId + '/';
         };
     </script>
 </body>
