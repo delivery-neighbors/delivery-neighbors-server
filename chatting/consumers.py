@@ -74,4 +74,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'userInfo': serializers.data,
             'message': message
-        }))
+        }, ensure_ascii=False
+        ))
