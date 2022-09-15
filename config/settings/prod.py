@@ -23,7 +23,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'config': {
-            "hosts": [('baedalius.com', 6379)],
+            "hosts": [('redis', 6379)],
         }
     }
 }
