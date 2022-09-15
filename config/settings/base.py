@@ -78,6 +78,9 @@ INSTALLED_APPS = [
 
     # 스케줄러
     'django_apscheduler',
+
+    # jupyter-notebook
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
