@@ -4,6 +4,7 @@ from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from accounts.models import User
+from ai.cleanbot.cleanbot import return_bad_words_index
 from chat.models import ChatUser
 from chatting.serializers import ChattingUserSerializer
 
@@ -60,6 +61,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print("[CHAT_MESSAGE]")
         chat_user_id = event['chat_user_id']
         message = event['message']
+        message_after_filter = return_bad_words_index(message, mode=0)
 
         user = ChatUser.objects.get(id=chat_user_id).user
         user = user.__dict__
@@ -73,6 +75,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         await self.send(text_data=json.dumps({
             'userInfo': serializers.data,
-            'message': message
+            'message': message_after_filter
         }, ensure_ascii=False
         ))
