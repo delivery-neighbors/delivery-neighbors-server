@@ -52,3 +52,20 @@ class UserReliability(models.Model):
     num_as_leader = models.IntegerField(default=0)
     num_as_participant = models.IntegerField(default=0)
     score = models.IntegerField(default=100)
+
+
+class OrderFrequency(models.Model):
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
+    category1 = models.IntegerField(default=0)
+    category2 = models.IntegerField(default=0)
+    category3 = models.IntegerField(default=0)
+    category4 = models.IntegerField(default=0)
+    category5 = models.IntegerField(default=0)
+    category6 = models.IntegerField(default=0)
+    category7 = models.IntegerField(default=0)
+    category8 = models.IntegerField(default=0)
+    category9 = models.IntegerField(default=0)
+    category10 = models.IntegerField(default=0)
+    category11 = models.IntegerField(default=0)
+    category12 = models.IntegerField(default=0)
+    total = models.IntegerField(default=0)

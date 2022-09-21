@@ -23,7 +23,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.serializers import *
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
-from neighbor.models import UserReliability
+from neighbor.models import UserReliability, OrderFrequency
 
 from config.settings.base import SOCIAL_OAUTH_CONFIG
 
@@ -70,11 +70,15 @@ class UserCreateAPIView(CreateAPIView):
         serializer = self.serializer_class(data=user_data)
 
         if serializer.is_valid(raise_exception=False):
+            # 유저 생성과 함께 토큰 발급
             user = serializer.create(user_data)
             user_reliability = UserReliability.objects.create(user=user)
             token = RefreshToken.for_user(user)
             refresh = str(token)
             access = str(token.access_token)
+
+            # 유저 생성 시 유저 주문 빈도 정보를 담고 있는 OrderFrequency 행 생성
+            user_order_frequency = OrderFrequency.objects.create(user=user)
 
         else:
             print(serializer.errors)
