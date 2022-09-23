@@ -44,7 +44,7 @@ class UserCreateAPIView(CreateAPIView):
     def post(self, request, *args, **kwargs):
 
         # email = request.data['email']
-        # avatar = request.data['avatar']
+        # avatar = request.data['avatar']'
         username = request.POST['username']
         email = request.POST['email']
         password = request.POST['password']
