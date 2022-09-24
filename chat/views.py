@@ -56,6 +56,8 @@ class RoomGetCreateAPIView(ListCreateAPIView):
                                                    (room.pickup_latitude, room.pickup_longitude),
                                                    unit=Unit.METERS) < 500]
 
+            print("rooms_within_500meters", rooms_within_500meters)
+
             if category_id != 0:
                 category = Category.objects.get(id=category_id)
                 rooms_by_category = [room for room in rooms_within_500meters
