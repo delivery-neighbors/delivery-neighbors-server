@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from accounts.models import User
-from neighbor.models import Review, UserReview, Address, Search, ChatUserReview, UserReliability
+from neighbor.models import Review, UserReview, Address, Search, ChatUserReview, UserReliability, OrderFrequency
 
 
 class UserReviewInline(admin.TabularInline):
@@ -22,7 +22,7 @@ class ReviewAdmin(admin.ModelAdmin):
 class UserReviewAdmin(admin.ModelAdmin):
     list_display = ['user_id', 'review_id', 'count']
     list_filter = ['user_id']  # 필터 처리된 user_id를 우측에 보여줌
-    ordering = ('-user_id', '-review_id', )
+    ordering = ('-user_id', '-review_id',)
 
 
 class AddressAdmin(admin.ModelAdmin):
@@ -41,6 +41,11 @@ class UserReliabilityAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'num_as_leader', 'num_as_participant', 'score']
 
 
+class OrderFrequencyAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'category1', 'category2', 'category3', 'category4', 'category5', 'category6',
+                    'category7', 'category8', 'category9', 'category10', 'category11', 'category12', 'total']
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(UserReview, UserReviewAdmin)
@@ -48,4 +53,4 @@ admin.site.register(Address, AddressAdmin)
 admin.site.register(Search, SearchAdmin)
 admin.site.register(ChatUserReview, ChatUserReviewAdmin)
 admin.site.register(UserReliability, UserReliabilityAdmin)
-
+admin.site.register(OrderFrequency, OrderFrequencyAdmin)
