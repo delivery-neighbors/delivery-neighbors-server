@@ -19,8 +19,8 @@ from config.authentication import CustomJWTAuthentication
 from neighbor.models import Review, UserReview, Address, Search, ChatUserReview, UserReliability
 from neighbor.serializers import *
 
-# BASE_URL = "https://baedalius.com/"  # deploy version
-BASE_URL = "http://localhost:8000/"  # local version
+BASE_URL = "https://baedalius.com/"  # deploy version
+# BASE_URL = "http://localhost:8000/"  # local version
 
 
 class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
