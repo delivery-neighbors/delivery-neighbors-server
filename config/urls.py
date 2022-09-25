@@ -30,6 +30,7 @@ urlpatterns = [
     path('chat/', include('chat.urls')),
     path('payment/', include('payment.urls')),
     path('chatting/', include('chatting.urls')),
+    path('recommendation/', include('recommendation.urls')),
 
     # Swagger
     path(r'swagger(?P<format>\.json|\.yaml)', schema_view.without_ui(cache_timeout=0), name='schema-json'),

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'chat',
     'payment',
     'chatting',
+    'recommendation',
 
     # channels
     'channels',
