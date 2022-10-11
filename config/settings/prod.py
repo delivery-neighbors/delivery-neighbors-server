@@ -21,8 +21,9 @@ DATABASES = {
 # Channels
 CHANNEL_LAYERS = {
     'default': {
+        # 'BACKEND': 'channels.layers.InMemoryChannelLayer',
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'config': {
+        'CONFIG': {
             "hosts": [('redis', 6379)],
         }
     }
