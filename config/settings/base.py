@@ -2,6 +2,9 @@ import json
 from datetime import timedelta
 from pathlib import Path
 
+import firebase_admin
+from firebase_admin import credentials
+
 import os
 
 from django.core.exceptions import ImproperlyConfigured
@@ -200,7 +203,6 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
-    'UPDATE_LAST_LOGIN': True,
 
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': JWT_SECRET_KEY,
@@ -232,3 +234,20 @@ AWS_STORAGE_BUCKET_NAME = 'deliveryneighborsbucket'
 AWS_S3_CUSTOM_DOMAIN = "%s.s3.%s.amazonaws.com" % (AWS_STORAGE_BUCKET_NAME, AWS_REGION)
 
 AWS_QUERYSTRING_AUTH = False
+
+# firebase admin sdk (for fcm)
+service_account_json = {
+  "type": "service_account",
+  "project_id": "delivery-neighbors",
+  "private_key_id": "d53bb75ae027ff2bfa828687c75d01ce7a0c59ba",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDbQ6RlvwSC5782\nqI/8eiKCri+kDrFuD9yvnU1P7eoOxly0lLWnyz3dbHNQn9TwopkckxISRU2WPJIK\n65hBgLaPbSXzczGEOeXCW8ctB0eYTliUR1/F+0FKfDmRhPWZ1xO4cDxaxW533a53\n7/hNY+Ad9QMeD2ywM/EmDedNA68kubRJ9U27BC9KpDlMYT88yO10SxKGKMOo0xuX\nhP5s7aQpaLNuap2JIZunLuECu53wYaAwUBQaNTJTk8Jg2pJZjXn3rTwQ8Y0Ku62u\n3yno238G6OEohVX6D1rvQH8B6F+zZKA3V7S9kWrPeseh29zIXkVXiYv3M2ZUG7C/\n75awRqLTAgMBAAECggEAKuEtFsrG5pTMs7M+SVlXQ2guH+7Rqx0GAwAHvRBhfBc1\nzQjiB5j7FcDeQk+nlJGv0MNAPvt3o2BgDSuqwHCcAyuMxvHpppquAJbzOi6YxUPZ\nFdJpe+3ZhGgL2BYA8994V1L3sqa2plFfi8wNqpDUJPej7u6ESmc2C0OfztNgHpWn\n7ZpcZx2NZc7TbuZcCfLQYxa+ZS1Ep0wcdFya4Km2pyjnZGFgRE19Z9mlo81aFmVV\nDj09D4LhOIUeEDJc5Vo0r6zAHD1R6icPvJ/WiO4s0X1OsljR/9BqKO1C48L+XaJ4\nn8HCMYDrMCSJRKYqivOkkHKV539E/Qt5v2TVC43oNQKBgQDureDQ8kouyWk2p4/h\nfAd2+KLr5+1my7y9rvx6ZyKCPBc6aNGu9XjKmuNkHYnEVm1PNyDr2aYr9wiS8l6I\n8gWTlsCDKPC2B5+ZJCngu6DpEuM1mFsYSE5J8viWiZphaOocNH5f1K+uO5fkjRx8\n2DY/5JTrUK3jOU6v5KrtUGWJjQKBgQDrLRPMV42oq7szREGnF53fOt4kPiR5w9rH\nUq9rt/ZFRiSCeVfDVDdRmHQBftEd7ah3DYg3aFvL1sT1ijhh0O7WIccBVUYY97mP\nOFAX1bzIb1IZEaNEn2tltZ0SbObVcOb9nB0dhA878TiyvVn92ik1nXpO5OrpZYPk\nSTR0J8hV3wKBgQDYBAK+2SqOobdZwdmUqB5RbMJ3Y9cW/Dn8Ks1TMtimqiATux5b\njMsgA4Ld72XqjpYr5ackDj44+EGITVeF9hVZ+EyP6JPDC69EeNh2DxqZF4EP1q5L\nkdVZVE/sXumcU8necRwXO3Us6b6VGam4zC59MTIer0xRpGI1C24vjl33WQKBgFKj\na2KRnXiYp9ZS9NL3TIVllSudHoofFWCXIIc0hHhBNpEWfI1pqWqlrJXd7zOaEGmN\nOsFljWQqWtmBMWDF3zcldV11joU1f2HhQtutQoIYA/xFI174ue9qiwAvfkmgO7sA\nQYbeoc/Jasf8G4RFRdfON21DqXxMLLVqN+FdHVt3AoGBAK5Y6e2itknaMrqb1XZS\n92D/PYMhcSdooRywKfFI+e7iA1hFbyF14KfZ48pBeJwXTFPboav/jG/iL5FbML7Q\nxoS54TfwIxyxgXHxL0+WkzDy6AO2yIDXn5fuCTvE6L45wwsWiRxt5IRMAxDEsKm0\nM8n2AIGollXE2fHpcJLn/oNh\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-b3umt@delivery-neighbors.iam.gserviceaccount.com",
+  "client_id": "105119088979594190713",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-b3umt%40delivery-neighbors.iam.gserviceaccount.com"
+}
+
+cred = credentials.Certificate(service_account_json)
+firebase_admin.initialize_app(cred)
