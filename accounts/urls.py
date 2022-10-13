@@ -17,5 +17,6 @@ urlpatterns = [
     path('deliveryneighbors/signup/', views.UserCreateAPIView.as_view(), name='user-create'),
     path('deliveryneighbors/signin/', views.UserLoginAPIView.as_view(), name='user-login'),
     path('deliveryneighbors/signout/', views.UserLogoutAPIView.as_view(), name='user-logout'),
+    path('deliveryneighbors/resign/', views.UserResignAPIView.as_view(), name='user-resign'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

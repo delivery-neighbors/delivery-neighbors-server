@@ -5,8 +5,10 @@ from django.urls import path
 from neighbor import views
 
 urlpatterns = [
-    # 유저 정보
-    path('user/<int:user_id>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve-update'),
+    # 유저 정보 수정
+    path('user/', views.UserUpdateAPIView.as_view(), name='user-update'),
+    # 유저 정보 조회
+    path('user/<int:user_id>/', views.UserRetrieveAPIView.as_view(), name='user-retrieve'),
     # 마이 페이지
     path('user/myPage/', views.UserMyPageAPIView.as_view(), name='myPage'),
 

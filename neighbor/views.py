@@ -23,7 +23,37 @@ BASE_URL = "https://baedalius.com/"  # deploy version
 # BASE_URL = "http://localhost:8000/"  # local version
 
 
-class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
+class UserUpdateAPIView(generics.UpdateAPIView):
+    def put(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        try:
+            user = User.objects.get(id=user_id)
+
+            username = request.POST['username']
+            avatar = request.FILES.getlist('avatar')
+
+            if user.is_active:
+                user.username = username
+                if avatar:
+                    user.avatar = avatar[0]
+                else:
+                    user.avatar = 'media/avatar/default_img.jpg'
+
+                serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                self.perform_update(serializer)
+
+                return Response({"status": status.HTTP_200_OK, "data": serializer.data})
+
+            else:
+                return Response({"status": status.HTTP_400_BAD_REQUEST})
+
+        except User.DoesNotExist:
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
+
+
+class UserRetrieveAPIView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -68,30 +98,6 @@ class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
         serializer = UserSerializer(instance=user)
 
         return Response({"status": status.HTTP_200_OK, "user": serializer.data})
-
-    def put(self, request):
-        user_id = CustomJWTAuthentication.authenticate(self, request)
-
-        try:
-            user = User.objects.get(id=user_id)
-
-            # TODO 빈 값 들어왔을 때 기본 이미지로 설정하기
-
-            if user.is_active:
-                user.username = request.data['username']
-                user.avatar = request.data['avatar']
-
-                serializer = UserUpdateSerializer(user, data=request.data, partial=False)
-                serializer.is_valid(raise_exception=True)
-                self.perform_update(serializer)
-
-                return Response({"status": status.HTTP_200_OK, "data": {"user": serializer.data}})
-
-            else:
-                return Response({"status": status.HTTP_400_BAD_REQUEST})
-
-        except User.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST})
 
 
 class UserMyPageAPIView(RetrieveAPIView):
