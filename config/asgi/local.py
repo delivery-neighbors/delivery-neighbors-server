@@ -16,9 +16,8 @@ application = ProtocolTypeRouter({
     "http": django_application,
     "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
-            # URLRouter url 패턴을 통해 어떤 consumer 라우팅할 지 정함
             URLRouter(
-                chatting.routing.urlpatterns
+                chatting.routing.websocket_urlpatterns
             )
         )
     ),
