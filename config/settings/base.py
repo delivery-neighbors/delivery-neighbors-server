@@ -2,6 +2,9 @@ import json
 from datetime import timedelta
 from pathlib import Path
 
+import firebase_admin
+from firebase_admin import credentials
+
 import os
 
 from django.core.exceptions import ImproperlyConfigured
@@ -30,6 +33,13 @@ SECRET_KEY = secrets.get_secret("SECRET_KEY")
 EMAIL_HOST_USER = secrets.get_secret("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = secrets.get_secret("EMAIL_HOST_PASSWORD")
 
+private_key_id = secrets.get_secret("private_key_id")
+private_key = secrets.get_secret("private_key")
+client_email = secrets.get_secret("client_email")
+client_id = secrets.get_secret("client_id")
+auth_provider_x509_cert_url = secrets.get_secret("auth_provider_x509_cert_url")
+client_x509_cert_url = secrets.get_secret("client_x509_cert_url")
+
 os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = 'true'
 
 INSTALLED_APPS = [
@@ -39,6 +49,7 @@ INSTALLED_APPS = [
     'chat',
     'payment',
     'chatting',
+    'recommendation',
 
     # channels
     'channels',
@@ -199,7 +210,6 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
-    'UPDATE_LAST_LOGIN': True,
 
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': JWT_SECRET_KEY,
@@ -231,3 +241,20 @@ AWS_STORAGE_BUCKET_NAME = 'deliveryneighborsbucket'
 AWS_S3_CUSTOM_DOMAIN = "%s.s3.%s.amazonaws.com" % (AWS_STORAGE_BUCKET_NAME, AWS_REGION)
 
 AWS_QUERYSTRING_AUTH = False
+
+# firebase admin sdk (for fcm)
+service_account_json = {
+  "type": "service_account",
+  "project_id": "delivery-neighbors",
+  "private_key_id": private_key_id,
+  "private_key": private_key,
+  "client_email": client_email,
+  "client_id": client_id,
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": auth_provider_x509_cert_url,
+  "client_x509_cert_url": client_x509_cert_url
+}
+
+cred = credentials.Certificate(service_account_json)
+firebase_admin.initialize_app(cred)

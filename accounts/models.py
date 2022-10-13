@@ -1,6 +1,18 @@
+import os.path
+
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from django.db import models
 from storages.backends.s3boto3 import S3Boto3Storage
+from django.utils import timezone
+
+
+def avatar_upload_to(instance, filename):
+    time_path = timezone.now().strftime('%Y_%m_%d_%T')
+    filename_split = os.path.splitext(filename)
+    img = filename_split[0]
+    extension = filename_split[1].lower()
+
+    return 'media/avatar/'+img + '_' + time_path + extension
 
 
 class UserManager(BaseUserManager):
@@ -43,7 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=False
     )
     avatar = models.ImageField(storage=S3Boto3Storage,
-                               upload_to='media/avatar/',
+                               upload_to=avatar_upload_to,
                                default='media/avatar/default_img.jpg')
     date_joined = models.DateTimeField(auto_now_add=True)
 
@@ -52,8 +64,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
 
+    # fcm token field -> user - fcm
+    fcm_token = models.CharField(blank=True, max_length=500, null=True)
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
     class Meta:
         db_table = "user"
+
