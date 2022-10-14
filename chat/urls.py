@@ -1,7 +1,8 @@
-from django.conf import settings
-from django.conf.urls.static import static
 from django.urls import path
+
+import payment
 from chat import views
+from payment.views import PayStatusAPIView
 
 app_name = 'chat'
 urlpatterns = [
@@ -43,5 +44,8 @@ urlpatterns = [
     path('room/<int:room_id>/pickup/', views.PickupAddrView.as_view(), name='pickup-addr'),
 
     # 채팅 유저 주문 금액 조회
-    path('room/<int:pk>/payinfo/', views.ChatUserPayInfoAPIView.as_view(), name='chat-pay-info')
+    path('room/<int:pk>/payinfo/', views.ChatUserPayInfoAPIView.as_view(), name='chat-pay-info'),
+
+    # 채팅 유저별 결제 상태 조회
+    path('room/<int:pk>/ispaid/', PayStatusAPIView.as_view(), name='is-paid'),
 ]
