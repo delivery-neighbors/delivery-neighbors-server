@@ -7,20 +7,17 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import generics, status
-from rest_framework.decorators import api_view
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from wordcloud import WordCloud
 
-from accounts.models import User
 from chat.models import ChatUser
 from config.authentication import CustomJWTAuthentication
-from neighbor.models import Review, UserReview, Address, Search, ChatUserReview, UserReliability
+from neighbor.models import ChatUserReview, UserReliability
 from neighbor.serializers import *
 
-BASE_URL = "https://baedalius.com/"  # deploy version
-# BASE_URL = "http://localhost:8000/"  # local version
+# BASE_URL = "https://baedalius.com/"  # deploy version
+BASE_URL = "http://localhost:8000/"  # local version
 
 
 class UserUpdateAPIView(generics.UpdateAPIView):
@@ -121,12 +118,6 @@ class UserMyPageAPIView(RetrieveAPIView):
         return Response({"status": status.HTTP_200_OK, "data": serializer.data})
 
 
-# ver 1)
-# class ReviewListAPIView(generics.ListAPIView):
-#     queryset = Review.objects.all()
-#     serializer_class = ReviewSerializer
-
-
 # ver 2)
 class ReviewListAPIView(APIView):
     def get(self, request, *args, **kwargs):
@@ -189,23 +180,6 @@ class UserReviewCreateView(generics.CreateAPIView):
                 chat_user_obj.save()
 
             return Response({"status": status.HTTP_200_OK})
-
-
-# @api_view(('GET',))
-# def user_review_update(request, userid, reviewid):
-#     print(userid, reviewid)
-#     try:
-#         user = User.objects.get(id=userid)
-#         review = Review.objects.get(id=reviewid)
-#         obj = UserReview.objects.get_or_create(user_id=user, review_id=review)
-#         obj[0].count += 1
-#         obj[0].save()
-#         serializer = UserReviewSerializer(obj[0])
-#         print(obj[0])
-#         return Response({"status": status.HTTP_200_OK, "data": serializer.data})
-#
-#     except Review.DoesNotExist:
-#         return Response({"status": status.HTTP_204_NO_CONTENT})
 
 
 class UserAddressView(ListCreateAPIView, DestroyAPIView):

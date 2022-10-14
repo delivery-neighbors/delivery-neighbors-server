@@ -45,6 +45,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print("[RECEIVE]")
         print(f"RECEIVE >> text_data: {text_data}")
         text_data_json = json.loads(text_data)
+        room_id = text_data_json['room_id']
         chat_user_id = text_data_json['chat_user_id']
         message = text_data_json['message']
 
@@ -52,6 +53,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.group_name,
             {
                 'type': 'chat.message',
+                'room_id': room_id,
                 'chat_user_id': chat_user_id,
                 'message': message
             }
@@ -59,12 +61,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         print("[CHAT_MESSAGE]")
+        room_id = event['room_id']
         chat_user_id = event['chat_user_id']
         message = event['message']
         message_after_filter = return_bad_words_index(message, mode=0)
 
         user = ChatUser.objects.get(id=chat_user_id).user
         user = user.__dict__
+        user['room_id'] = int(room_id)
         user['chat_user_id'] = chat_user_id
         print(f"CHAT_MESSAGE >> event: {event}")
 
