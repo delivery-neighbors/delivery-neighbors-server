@@ -5,7 +5,7 @@ from accounts.models import User
 class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'avatar']
+        fields = ['username', 'email', 'password', 'avatar', 'fcm_token']
 
 
 class EmailSendSerializer(serializers.ModelSerializer):

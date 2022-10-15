@@ -7,23 +7,50 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import generics, status
-from rest_framework.decorators import api_view
 from rest_framework.generics import ListCreateAPIView, DestroyAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from wordcloud import WordCloud
 
-from accounts.models import User
 from chat.models import ChatUser
 from config.authentication import CustomJWTAuthentication
-from neighbor.models import Review, UserReview, Address, Search, ChatUserReview, UserReliability
+from neighbor.models import ChatUserReview, UserReliability
 from neighbor.serializers import *
 
-BASE_URL = "https://baedalius.com/"  # deploy version
-# BASE_URL = "http://localhost:8000/"  # local version
+# BASE_URL = "https://baedalius.com/"  # deploy version
+BASE_URL = "http://localhost:8000/"  # local version
 
 
-class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
+class UserUpdateAPIView(generics.UpdateAPIView):
+    def put(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        try:
+            user = User.objects.get(id=user_id)
+
+            username = request.POST['username']
+            avatar = request.FILES.getlist('avatar')
+
+            if user.is_active:
+                user.username = username
+                if avatar:
+                    user.avatar = avatar[0]
+                else:
+                    user.avatar = 'media/avatar/default_img.jpg'
+
+                serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                self.perform_update(serializer)
+
+                return Response({"status": status.HTTP_200_OK, "data": serializer.data})
+
+            else:
+                return Response({"status": status.HTTP_400_BAD_REQUEST})
+
+        except User.DoesNotExist:
+            return Response({"status": status.HTTP_400_BAD_REQUEST})
+
+
+class UserRetrieveAPIView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -69,30 +96,6 @@ class UserRetrieveAPIView(generics.RetrieveUpdateAPIView):
 
         return Response({"status": status.HTTP_200_OK, "user": serializer.data})
 
-    def put(self, request):
-        user_id = CustomJWTAuthentication.authenticate(self, request)
-
-        try:
-            user = User.objects.get(id=user_id)
-
-            # TODO 빈 값 들어왔을 때 기본 이미지로 설정하기
-
-            if user.is_active:
-                user.username = request.data['username']
-                user.avatar = request.data['avatar']
-
-                serializer = UserUpdateSerializer(user, data=request.data, partial=False)
-                serializer.is_valid(raise_exception=True)
-                self.perform_update(serializer)
-
-                return Response({"status": status.HTTP_200_OK, "data": {"user": serializer.data}})
-
-            else:
-                return Response({"status": status.HTTP_400_BAD_REQUEST})
-
-        except User.DoesNotExist:
-            return Response({"status": status.HTTP_400_BAD_REQUEST})
-
 
 class UserMyPageAPIView(RetrieveAPIView):
     def get(self, request):
@@ -113,12 +116,6 @@ class UserMyPageAPIView(RetrieveAPIView):
         serializer = MyPageSerializer(instance=data)
 
         return Response({"status": status.HTTP_200_OK, "data": serializer.data})
-
-
-# ver 1)
-# class ReviewListAPIView(generics.ListAPIView):
-#     queryset = Review.objects.all()
-#     serializer_class = ReviewSerializer
 
 
 # ver 2)
@@ -183,23 +180,6 @@ class UserReviewCreateView(generics.CreateAPIView):
                 chat_user_obj.save()
 
             return Response({"status": status.HTTP_200_OK})
-
-
-# @api_view(('GET',))
-# def user_review_update(request, userid, reviewid):
-#     print(userid, reviewid)
-#     try:
-#         user = User.objects.get(id=userid)
-#         review = Review.objects.get(id=reviewid)
-#         obj = UserReview.objects.get_or_create(user_id=user, review_id=review)
-#         obj[0].count += 1
-#         obj[0].save()
-#         serializer = UserReviewSerializer(obj[0])
-#         print(obj[0])
-#         return Response({"status": status.HTTP_200_OK, "data": serializer.data})
-#
-#     except Review.DoesNotExist:
-#         return Response({"status": status.HTTP_204_NO_CONTENT})
 
 
 class UserAddressView(ListCreateAPIView, DestroyAPIView):

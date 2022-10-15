@@ -23,12 +23,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from accounts.serializers import *
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
+
+from config.authentication import CustomJWTAuthentication
 from neighbor.models import UserReliability, OrderFrequency
 
 from config.settings.base import SOCIAL_OAUTH_CONFIG
 
-BASE_URL = "https://baedalius.com/"  # deploy version
-# BASE_URL = "http://localhost:8000/"  # local version
+# BASE_URL = "https://baedalius.com/"  # deploy version
+BASE_URL = "http://localhost:8000/"  # local version
 
 KAKAO_CLIENT_ID = SOCIAL_OAUTH_CONFIG['KAKAO_REST_API_KEY']
 KAKAO_REDIRECT_URI = f"{BASE_URL}{SOCIAL_OAUTH_CONFIG['KAKAO_REDIRECT_URI']}"
@@ -50,13 +52,17 @@ class UserCreateAPIView(CreateAPIView):
         password = request.POST['password']
         avatar = request.FILES.getlist('avatar')
 
+        # fcm token
+        fcm_token = request.data['fcm']
+
         if avatar:
             user_data = {
                 'username': username,
                 'email': email,
                 # 'password': make_password(request.data['password']),
                 'password': make_password(password),
-                'avatar': avatar[0]
+                'avatar': avatar[0],
+                'fcm_token': fcm_token
             }
 
         else:
@@ -64,7 +70,8 @@ class UserCreateAPIView(CreateAPIView):
                 'username': request.data['username'],
                 'email': email,
                 # 'password': make_password(request.data['password']),
-                'password': make_password(password)
+                'password': make_password(password),
+                'fcm_token': fcm_token
             }
 
         serializer = self.serializer_class(data=user_data)
@@ -139,6 +146,9 @@ class UserLoginAPIView(GenericAPIView):
         request_email = request.data['email']
         request_password = request.data['password']
 
+        # fcm token
+        fcm_token = request.data['fcm']
+
         try:
             user = User.objects.get(email=request_email)  # 여기서 객체가 없으면 DoesNotExist 예외처리
             user_password = user.password
@@ -146,6 +156,9 @@ class UserLoginAPIView(GenericAPIView):
                 token = RefreshToken.for_user(user)
                 refresh = str(token)
                 access = str(token.access_token)
+
+                user.fcm_token = fcm_token
+                user.save()
 
                 return JsonResponse({"status": status.HTTP_200_OK,
                                      "user": user.pk, "refresh": refresh, "access": access})  # 성공메세지
@@ -160,12 +173,19 @@ class UserLoginAPIView(GenericAPIView):
 
 class UserLogoutAPIView(APIView):
     def post(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+        user = User.objects.get(id=user_id)
+
         response = Response({"status": status.HTTP_200_OK})
 
         if 'rest_framework_simplejwt.token_blacklist' in settings.INSTALLED_APPS:
             try:
                 token = RefreshToken(request.data['refresh'])
                 token.blacklist()
+
+                # fcm token delete
+                user.fcm_token = None
+                user.save()
 
             except KeyError:
                 response.data = {"status": status.HTTP_400_BAD_REQUEST}
@@ -179,6 +199,16 @@ class UserLogoutAPIView(APIView):
                 else:
                     response.data = {"status": status.HTTP_500_INTERNAL_SERVER_ERROR}
         return response
+
+
+class UserResignAPIView(APIView):
+    def delete(self, request):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+
+        user = User.objects.get(id=user_id)
+        user.delete()
+
+        return Response({"status": status.HTTP_200_OK})
 
 
 # Code Request
