@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'payment',
     'chatting',
     'recommendation',
-    'notification',
 
     # channels
     'channels',
