@@ -1,11 +1,15 @@
 import json
 
+from rest_framework import status
+from rest_framework.response import Response
+
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+from firebase_admin import messaging
 
-from accounts.models import User
 from ai.cleanbot.cleanbot import return_bad_words_index
-from chat.models import ChatUser
+from accounts.models import User
+from chat.models import Room, ChatUser
 from chatting.serializers import ChattingUserSerializer
 
 
@@ -57,6 +61,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
+        await push_chat_notification(self.room_id, message)
+
     async def chat_message(self, event):
         print("[CHAT_MESSAGE]")
         chat_user_id = event['chat_user_id']
@@ -78,3 +84,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message': message_after_filter
         }, ensure_ascii=False
         ))
+
+
+async def push_chat_notification(room_id, chat_message):
+    room = Room.objects.get(id=room_id)
+    room_name = Room.room_name
+    chat_users = list(ChatUser.objects.filter(room=room))
+    users = [chat_user.user for chat_user in chat_users]
+    user_tokens = [user.fcm_token for user in users]
+
+    message = messaging.MulticastMessage(
+        tokens=user_tokens,
+        data={
+            "title": f'${room_name}',
+            "body": f'${chat_message}',
+        },
+    )
+
+    try:
+        response = messaging.send_multicast(message)
+        print("message send success")
+        return Response({"status": status.HTTP_200_OK})
+    except Exception as e:
+        reason = e.__str__()
+        print("푸시 알림 실패 원인", reason)
+        return Response({"status": status.HTTP_400_BAD_REQUEST, "reason": reason})
