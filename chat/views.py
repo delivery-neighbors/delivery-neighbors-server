@@ -1,6 +1,8 @@
 from datetime import timedelta, datetime
 from decimal import Decimal
 
+from firebase_admin import messaging
+
 from django.db.models import Q
 from rest_framework.generics import *
 from rest_framework.response import Response
@@ -14,6 +16,31 @@ from haversine import haversine, Unit
 
 from neighbor.models import Address, Search, UserReliability, ChatUserReview
 from payment.models import Pay
+from recommendation.models import Recommended
+
+
+def push_recommendation(fcm_tokens):
+    message = messaging.MulticastMessage(
+        tokens=fcm_tokens,
+        notification=messaging.Notification(
+            title='추천 이웃 채팅방 개설',
+            body='추천 이웃이 개설한 채팅방 보기',
+        ),
+        android=messaging.AndroidConfig(
+            notification=messaging.AndroidNotification(
+                click_action='waitingActivity'
+            ),
+        ),
+    )
+
+    try:
+        response = messaging.send_multicast(message)
+        print("push notification success")
+        return Response({"status": status.HTTP_200_OK})
+    except Exception as e:
+        reason = e.__str__()
+        print("푸시 알림 실패 원인", reason)
+        return Response({"status": status.HTTP_400_BAD_REQUEST, "reason": reason})
 
 
 class RoomGetCreateAPIView(ListCreateAPIView):
@@ -144,6 +171,13 @@ class RoomGetCreateAPIView(ListCreateAPIView):
             room=room,
             user=User.objects.get(id=leader)
         )
+
+        rec_objs = list(Recommended.objects.filter(Q(rec_user1=leader) | Q(rec_user2=leader) | Q(rec_user3=leader)))
+        rec_user_list = [rec_obj.user for rec_obj in rec_objs]
+        user_tokens = [user.fcm_token for user in rec_user_list]
+        print("보내야 할 사람 fcm token", user_tokens)
+
+        push_recommendation(user_tokens)
 
         return Response({"status": status.HTTP_201_CREATED})
 
