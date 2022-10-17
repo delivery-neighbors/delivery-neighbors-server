@@ -44,9 +44,6 @@ class UserCreateAPIView(CreateAPIView):
     serializer_class = UserCreateSerializer
 
     def post(self, request, *args, **kwargs):
-
-        # email = request.data['email']
-        # avatar = request.data['avatar']'
         username = request.POST['username']
         email = request.POST['email']
         password = request.POST['password']
@@ -69,7 +66,6 @@ class UserCreateAPIView(CreateAPIView):
             user_data = {
                 'username': request.data['username'],
                 'email': email,
-                # 'password': make_password(request.data['password']),
                 'password': make_password(password),
                 'fcm_token': fcm_token
             }
@@ -300,7 +296,7 @@ def kakao_callback(request):
         if avatar_url != "http://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg":
             avatar_request = requests.get(avatar_url)
             user.avatar.save(
-                f"{kakao_account['email']}-avatar.jpg", ContentFile(avatar_request.content)
+                f"{kakao_account['email']}.jpg", ContentFile(avatar_request.content)
             )
         else:  # 기본 이미지일 때 -> 저장된 이미지 적용
             user.avatar = "media/avatar/default_img.jpg"
