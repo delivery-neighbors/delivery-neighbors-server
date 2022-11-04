@@ -8,8 +8,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from firebase_admin import messaging
 
 from ai.cleanbot.cleanbot import return_bad_words_index
-from accounts.models import User
 from chat.models import Room, ChatUser
+from chatting.models import Message
 from chatting.serializers import ChattingUserSerializer
 
 
@@ -63,7 +63,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
-        await push_chat_notification(self.room_id, message)
+        # await push_chat_notification(self.room_id, message)
 
     async def chat_message(self, event):
         print("[CHAT_MESSAGE]")
@@ -82,6 +82,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         serializers = ChattingUserSerializer(instance=user)
         print(f"CHAT_MESSAGE >> avatar: {user['avatar']}")
         print(f"CHAT_MESSAGE >> serializers: {serializers.data}")
+
+        room = Room.objects.get(id=room_id)
+        chat_user = ChatUser.objects.get(id=chat_user_id)
+
+        Message.objects.create(
+            chat_user=chat_user,
+            room=room,
+            message=message_after_filter
+        )
 
         await self.send(text_data=json.dumps({
             'userInfo': serializers.data,
