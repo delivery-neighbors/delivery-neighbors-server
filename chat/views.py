@@ -28,13 +28,13 @@ def push_recommendation(fcm_tokens):
         ),
         android=messaging.AndroidConfig(
             notification=messaging.AndroidNotification(
-                click_action='waitingActivity'
+                click_action='WaitingActivity'
             ),
         ),
     )
 
     try:
-        response = messaging.send_multicast(message)
+        response = messaging.send_multicast(message, dry_run=False)
         print("push notification success")
         return Response({"status": status.HTTP_200_OK})
     except Exception as e:

@@ -16,8 +16,8 @@ from config.authentication import CustomJWTAuthentication
 from neighbor.models import ChatUserReview, UserReliability
 from neighbor.serializers import *
 
-# BASE_URL = "https://baedalius.com/"  # deploy version
-BASE_URL = "http://localhost:8000/"  # local version
+BASE_URL = "https://baedalius.com/"  # deploy version
+# BASE_URL = "http://localhost:8000/"  # local version
 
 
 class UserUpdateAPIView(generics.UpdateAPIView):
@@ -168,6 +168,14 @@ class UserReviewCreateView(generics.CreateAPIView):
                 obj = UserReview.objects.get_or_create(user_id=user, review_id=review)
                 obj[0].count += 1
                 obj[0].save()
+
+                reliability = UserReliability.objects.get(user=user)
+                if 1 <= review_index <= 6:
+                    reliability.score += 2
+                    reliability.save()
+                else:
+                    reliability.score -= 2
+                    reliability.save()
 
             ChatUserReview.objects.create(chat_user=chat_user, writer=login_user)
 
