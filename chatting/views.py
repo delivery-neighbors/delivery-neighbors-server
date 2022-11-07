@@ -1,4 +1,11 @@
+from django.http import JsonResponse
 from django.shortcuts import render
+from rest_framework import status
+from rest_framework.generics import ListCreateAPIView
+
+from chat.models import Room
+from chatting.models import Message
+from chatting.serializers import MessageListSerializer
 
 
 def index(request):
@@ -10,3 +17,15 @@ def room(request, room_id, user_id):
         'room_id': room_id,
         'user_id': user_id
     })
+
+
+class MessageGetAPIView(ListCreateAPIView):
+    queryset = Message.objects.all()
+    serializer_class = MessageListSerializer
+
+    def get(self, request, pk):
+        room = Room.objects.get(id=pk)
+        messages = Message.objects.filter(room=room)
+        serializer = MessageListSerializer(instance=messages, many=True)
+
+        return JsonResponse({"status": status.HTTP_200_OK, "rooms": serializer.data})

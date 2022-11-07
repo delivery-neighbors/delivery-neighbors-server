@@ -16,7 +16,7 @@
         const local_storage = localStorage
 
         const chatSocket = new WebSocket(
-            'ws://'
+            'wss://'
             + window.location.host
             + '/ws/chatting/'
             + roomId
@@ -49,6 +49,7 @@
             const messageInputDom = document.querySelector('#chat-message-input');
             const message = messageInputDom.value;
             chatSocket.send(JSON.stringify({
+                'room_id': roomId,
                 'chat_user_id': userId,
                 'message': message
             }));
