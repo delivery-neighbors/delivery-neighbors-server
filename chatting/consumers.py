@@ -118,11 +118,6 @@ async def push_chat_notification(room_id, chat_message, sender_id):
             'body': f'{chat_message}',
             'activity': 'waitingActivity'
         },
-        # android=messaging.AndroidConfig(
-        #     notification=messaging.AndroidNotification(
-        #         click_action='waitingActivity'
-        #     ),
-        # ),
     )
 
     try:
