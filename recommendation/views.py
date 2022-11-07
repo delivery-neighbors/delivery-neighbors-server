@@ -60,7 +60,7 @@ class SimilarUserListView(ListAPIView):
                                               index=user_category_df.index, columns=user_category_df.index)
 
         cosine_sim_list = user_similarity_df[user_id].sort_values(ascending=False)[1:4].index
-        print("코사인 유사도 계산 결과", cosine_sim_list)
+        print("코사인 유사도 계산 결과", cosine_sim_list, "\n")
 
         address = Address.objects.filter(user=user_id).order_by('-created_at')
         request_latitude = address[0].addr_latitude
@@ -80,22 +80,22 @@ class SimilarUserListView(ListAPIView):
             user = User.objects.get(id=userId)
 
             room = list(Room.objects.filter(leader=user).filter(status="JOINED"))
-            print("room_list", room)
 
             if room:
-                rec_rooms.append(room[-1])
+                last_create = room[len(room)-1]
+                rec_rooms.append(last_create)
 
             else:
-                last_joined_room = ChatUser.objects.filter(user=user)
+                user_joined_chat = list(ChatUser.objects.filter(user=user))
 
-                if not last_joined_room:
+                if not user_joined_chat:
                     continue
 
-                last_joined_room = list(last_joined_room)
-                last_joined_room = last_joined_room[-1].room
+                joined_room = [chat.room for chat in user_joined_chat]
+                last_joined_room = joined_room[len(joined_room)-1]
 
                 if last_joined_room.status == "JOINED":
-                    rec_rooms.append(last_joined_room[-1].room)
+                    rec_rooms.append(last_joined_room)
 
         rec_rooms_within_500meters = [room for room in rec_rooms
                                       if haversine(request_location,
@@ -140,7 +140,10 @@ class SimilarUserListView(ListAPIView):
             room['participant_num'] = participant_num
 
         # 추천 채팅방 조회 시 생성된 추천 이웃 3명 저장(바뀌면 업데이트)
-        recommended= Recommended.objects.get_or_create(user=login_user)
+        recommended = Recommended.objects.get_or_create(user=login_user,
+                                                       rec_user1=cosine_sim_list[0],
+                                                       rec_user2=cosine_sim_list[1],
+                                                       rec_user3=cosine_sim_list[2])
         recommended[0].rec_user1 = cosine_sim_list[0]
         recommended[0].rec_user2 = cosine_sim_list[1]
         recommended[0].rec_user3 = cosine_sim_list[2]
