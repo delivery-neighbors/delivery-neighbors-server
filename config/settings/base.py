@@ -245,7 +245,7 @@ AWS_QUERYSTRING_AUTH = False
 # firebase admin sdk (for fcm)
 service_account_json = {
   "type": "service_account",
-  "project_id": "deliveryneighbors",
+  "project_id": "delivery-neighbors",
   "private_key_id": private_key_id,
   "private_key": private_key,
   "client_email": client_email,
