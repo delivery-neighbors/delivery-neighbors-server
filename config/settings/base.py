@@ -206,8 +206,8 @@ REST_USE_JWT = True
 JWT_SECRET_KEY = secrets.get_secret("JWT_SECRET_KEY")
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(hours=3),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=3),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 
@@ -245,7 +245,7 @@ AWS_QUERYSTRING_AUTH = False
 # firebase admin sdk (for fcm)
 service_account_json = {
   "type": "service_account",
-  "project_id": "deliveryneighbors",
+  "project_id": "delivery-neighbors",
   "private_key_id": private_key_id,
   "private_key": private_key,
   "client_email": client_email,
