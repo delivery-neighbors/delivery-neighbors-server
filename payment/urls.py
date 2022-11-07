@@ -11,5 +11,8 @@ urlpatterns = [
     path('toss/confirm/', views.pay_confirmed, name='pay_confirmed'),
 
     # 결제 실패
-    path('toss/fail/', views.pay_failed, name='pay_failed')
+    path('toss/fail/', views.pay_failed, name='pay_failed'),
+
+    # 결제 상태 업데이트
+    path('chatuser/<int:pk>/paydone/', views.PayDoneUpdateAPIView.as_view(), name='pay-done-update'),
 ]
