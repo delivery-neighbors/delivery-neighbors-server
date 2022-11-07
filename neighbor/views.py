@@ -169,14 +169,6 @@ class UserReviewCreateView(generics.CreateAPIView):
                 obj[0].count += 1
                 obj[0].save()
 
-                reliability = UserReliability.objects.get(user=user)
-                if 1 <= review_index <= 6:
-                    reliability.score += 2
-                    reliability.save()
-                else:
-                    reliability.score -= 2
-                    reliability.save()
-
             ChatUserReview.objects.create(chat_user=chat_user, writer=login_user)
 
             review_count = len(ChatUserReview.objects.filter(writer=login_user, chat_user__room=room).
