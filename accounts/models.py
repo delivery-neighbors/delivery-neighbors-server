@@ -7,12 +7,10 @@ from django.utils import timezone
 
 
 def avatar_upload_to(instance, filename):
-    time_path = timezone.now().strftime('%Y_%m_%d_%T')
     filename_split = os.path.splitext(filename)
-    img = filename_split[0]
     extension = filename_split[1].lower()
 
-    return 'media/avatar/'+img + '_' + time_path + extension
+    return 'media/avatar/' + str(instance) + '-' + 'avatar' + extension
 
 
 class UserManager(BaseUserManager):

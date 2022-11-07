@@ -4,11 +4,14 @@ from random import randint
 
 import requests
 from django.http import JsonResponse
+from requests import Response
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
 
 from chat.models import ChatUser, Room
+from chat.serializers import ChatUserStatusSerializer
 from config.settings.base import TOSS_PAYMENTS_CONFIG
 from neighbor.models import UserReliability
 from payment.models import Pay
@@ -115,3 +118,32 @@ def pay_confirmed(request):
 
 def pay_failed(request):
     return JsonResponse({"status": status.HTTP_402_PAYMENT_REQUIRED})
+
+
+class PayStatusAPIView(APIView):
+    def get(self, request, pk):
+        joined_user = ChatUser.objects.filter(room=pk)
+        for chat_user in joined_user:
+            status_proceeding = False
+            if chat_user.status == 'PAY_DONE' or chat_user.status == 'DONE':  # '수령 완료' 이면 모든 유저 status 가 True
+                status_proceeding = True
+            chat_user = chat_user.__dict__
+            chat_user['status'] = status_proceeding
+
+        serializer = ChatUserStatusSerializer(instance=joined_user, many=True)
+        return JsonResponse({"status": status.HTTP_200_OK, "user_status": serializer.data})
+
+
+class PayDoneUpdateAPIView(APIView):
+    def get(self, request, pk):
+        chat_user = ChatUser.objects.get(id=pk)
+        chat_user.status = "PAY_DONE"
+        chat_user.save()
+
+        participated_room = chat_user.room
+        chat_user_pay_done = ChatUser.objects.filter(room=participated_room, status='PAY_DONE')
+        if len(chat_user_pay_done) == participated_room.max_participant_num - 1:
+            participated_room.status = 'PAY_DONE'
+            participated_room.save()
+
+        return JsonResponse({"status": status.HTTP_200_OK})

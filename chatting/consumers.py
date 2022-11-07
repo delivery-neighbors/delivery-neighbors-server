@@ -1,11 +1,15 @@
 import json
 
+from rest_framework import status
+from rest_framework.response import Response
+
 from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+from firebase_admin import messaging
 
-from accounts.models import User
 from ai.cleanbot.cleanbot import return_bad_words_index
-from chat.models import ChatUser
+from chat.models import Room, ChatUser
+from chatting.models import Message
 from chatting.serializers import ChattingUserSerializer
 
 
@@ -45,6 +49,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print("[RECEIVE]")
         print(f"RECEIVE >> text_data: {text_data}")
         text_data_json = json.loads(text_data)
+        room_id = text_data_json['room_id']
         chat_user_id = text_data_json['chat_user_id']
         message = text_data_json['message']
 
@@ -52,19 +57,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.group_name,
             {
                 'type': 'chat.message',
+                'room_id': room_id,
                 'chat_user_id': chat_user_id,
                 'message': message
             }
         )
 
+        await push_chat_notification(self.room_id, message, chat_user_id)
+
     async def chat_message(self, event):
         print("[CHAT_MESSAGE]")
+        room_id = event['room_id']
         chat_user_id = event['chat_user_id']
         message = event['message']
         message_after_filter = return_bad_words_index(message, mode=0)
 
         user = ChatUser.objects.get(id=chat_user_id).user
         user = user.__dict__
+        user['room_id'] = int(room_id)
         user['chat_user_id'] = chat_user_id
         print(f"CHAT_MESSAGE >> event: {event}")
 
@@ -73,8 +83,54 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print(f"CHAT_MESSAGE >> avatar: {user['avatar']}")
         print(f"CHAT_MESSAGE >> serializers: {serializers.data}")
 
+        room = Room.objects.get(id=room_id)
+        chat_user = ChatUser.objects.get(id=chat_user_id)
+
+        Message.objects.create(
+            chat_user=chat_user,
+            room=room,
+            message=message_after_filter
+        )
+
         await self.send(text_data=json.dumps({
             'userInfo': serializers.data,
             'message': message_after_filter
         }, ensure_ascii=False
         ))
+
+
+async def push_chat_notification(room_id, chat_message, sender_id):
+    room = Room.objects.get(id=room_id)
+    room_name = room.room_name
+    chat_users = list(ChatUser.objects.filter(room=room))
+    users = [chat_user.user for chat_user in chat_users if chat_user.user_id != sender_id]
+    user_tokens = [user.fcm_token for user in users]
+    print("채팅 fcm tokens", user_tokens)
+
+    message = messaging.MulticastMessage(
+        tokens=user_tokens,
+        notification=messaging.Notification(
+            title=f'{room_name}',
+            body=f'{chat_message}'
+        ),
+        data={
+            'title': f'{room_name}',
+            'body': f'{chat_message}',
+            'activity': 'waitingActivity'
+        },
+        # android=messaging.AndroidConfig(
+        #     notification=messaging.AndroidNotification(
+        #         click_action='waitingActivity'
+        #     ),
+        # ),
+    )
+
+    try:
+        print("message 형태", message.data['activity'])
+        response = messaging.send_multicast(message, dry_run=False)
+        print("message send success")
+        return Response({"status": status.HTTP_200_OK})
+    except Exception as e:
+        reason = e.__str__()
+        print("푸시 알림 실패 원인", reason)
+        return Response({"status": status.HTTP_400_BAD_REQUEST, "reason": reason})
