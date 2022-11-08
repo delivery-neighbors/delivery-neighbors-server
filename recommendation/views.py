@@ -152,4 +152,3 @@ class SimilarUserListView(ListAPIView):
         serializer = SimilarUserChatroomSerializer(instance=rec_rooms_within_500meters, many=True)
         return Response({"status": status.HTTP_200_OK, "rooms": serializer.data})
         # return Response({"status": status.HTTP_200_OK})
-

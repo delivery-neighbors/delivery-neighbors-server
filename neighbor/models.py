@@ -69,4 +69,3 @@ class OrderFrequency(models.Model):
     category11 = models.IntegerField(default=0)
     category12 = models.IntegerField(default=0)
     total = models.IntegerField(default=0)
-

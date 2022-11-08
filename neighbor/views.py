@@ -293,3 +293,4 @@ class UserIdCheckAPIView(RetrieveAPIView):
         user = User.objects.get(id=user_id)
         serializer = UserIdCheckSerializer(instance=user)
         return Response({"status": status.HTTP_200_OK, "data": serializer.data})
+
