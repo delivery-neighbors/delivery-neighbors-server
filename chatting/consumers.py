@@ -63,7 +63,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
-        # await push_chat_notification(self.room_id, message)
+        await push_chat_notification(self.room_id, message, chat_user_id)
 
     async def chat_message(self, event):
         print("[CHAT_MESSAGE]")
@@ -99,23 +99,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
         ))
 
 
-async def push_chat_notification(room_id, chat_message):
+async def push_chat_notification(room_id, chat_message, sender_id):
     room = Room.objects.get(id=room_id)
-    room_name = Room.room_name
+    room_name = room.room_name
     chat_users = list(ChatUser.objects.filter(room=room))
-    users = [chat_user.user for chat_user in chat_users]
+    users = [chat_user.user for chat_user in chat_users if chat_user.user_id != sender_id]
     user_tokens = [user.fcm_token for user in users]
+    print("채팅 fcm tokens", user_tokens)
 
     message = messaging.MulticastMessage(
         tokens=user_tokens,
+        notification=messaging.Notification(
+            title=f'{room_name}',
+            body=f'{chat_message}'
+        ),
         data={
-            "title": f'${room_name}',
-            "body": f'${chat_message}',
+            'title': f'{room_name}',
+            'body': f'{chat_message}',
+            'activity': 'waitingActivity'
         },
     )
 
     try:
-        response = messaging.send_multicast(message)
+        print("message 형태", message.data['activity'])
+        response = messaging.send_multicast(message, dry_run=False)
         print("message send success")
         return Response({"status": status.HTTP_200_OK})
     except Exception as e:

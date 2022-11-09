@@ -179,6 +179,14 @@ class UserReviewCreateView(generics.CreateAPIView):
                 chat_user_obj.review_status = True
                 chat_user_obj.save()
 
+            reliability = UserReliability.objects.get(user=user)
+            if 1 <= review_index <= 6:
+                reliability.score += 2
+                reliability.save()
+            else:
+                reliability.score -= 2
+                reliability.save()
+
             return Response({"status": status.HTTP_200_OK})
 
 
@@ -285,3 +293,4 @@ class UserIdCheckAPIView(RetrieveAPIView):
         user = User.objects.get(id=user_id)
         serializer = UserIdCheckSerializer(instance=user)
         return Response({"status": status.HTTP_200_OK, "data": serializer.data})
+

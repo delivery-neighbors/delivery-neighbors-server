@@ -51,7 +51,7 @@ class UserReliability(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     num_as_leader = models.IntegerField(default=0)
     num_as_participant = models.IntegerField(default=0)
-    score = models.IntegerField(default=100)
+    score = models.IntegerField(default=50)
 
 
 class OrderFrequency(models.Model):
@@ -69,4 +69,3 @@ class OrderFrequency(models.Model):
     category11 = models.IntegerField(default=0)
     category12 = models.IntegerField(default=0)
     total = models.IntegerField(default=0)
-

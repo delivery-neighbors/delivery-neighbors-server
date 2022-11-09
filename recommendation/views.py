@@ -83,19 +83,20 @@ class SimilarUserListView(ListAPIView):
             print("room_list", room)
 
             if room:
-                rec_rooms.append(room[-1])
+                last_create = room[len(room) - 1]
+                rec_rooms.append(last_create)
 
             else:
-                last_joined_room = ChatUser.objects.filter(user=user)
+                user_joined_chat = list(ChatUser.objects.filter(user=user))
 
-                if not last_joined_room:
+                if not user_joined_chat:
                     continue
 
-                last_joined_room = list(last_joined_room)
-                last_joined_room = last_joined_room[-1].room
+                joined_room = [chat.room for chat in user_joined_chat]
+                last_joined_room = joined_room[len(joined_room) - 1]
 
                 if last_joined_room.status == "JOINED":
-                    rec_rooms.append(last_joined_room[-1].room)
+                    rec_rooms.append(last_joined_room)
 
         rec_rooms_within_500meters = [room for room in rec_rooms
                                       if haversine(request_location,
@@ -140,7 +141,7 @@ class SimilarUserListView(ListAPIView):
             room['participant_num'] = participant_num
 
         # 추천 채팅방 조회 시 생성된 추천 이웃 3명 저장(바뀌면 업데이트)
-        recommended= Recommended.objects.get_or_create(user=login_user)
+        recommended = Recommended.objects.get_or_create(user=login_user)
         recommended[0].rec_user1 = cosine_sim_list[0]
         recommended[0].rec_user2 = cosine_sim_list[1]
         recommended[0].rec_user3 = cosine_sim_list[2]
@@ -148,5 +149,3 @@ class SimilarUserListView(ListAPIView):
 
         serializer = SimilarUserChatroomSerializer(instance=rec_rooms_within_500meters, many=True)
         return Response({"status": status.HTTP_200_OK, "rooms": serializer.data})
-        # return Response({"status": status.HTTP_200_OK})
-

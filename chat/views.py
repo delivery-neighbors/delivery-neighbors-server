@@ -34,7 +34,7 @@ def push_recommendation(fcm_tokens):
     )
 
     try:
-        response = messaging.send_multicast(message)
+        response = messaging.send_multicast(message, dry_run=False)
         print("push notification success")
         return Response({"status": status.HTTP_200_OK})
     except Exception as e:
