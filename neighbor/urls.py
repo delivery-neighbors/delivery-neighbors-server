@@ -40,5 +40,8 @@ urlpatterns = [
     path('tosspayments/', views.toss_view, name='toss_payment'),
 
     # 토큰으로 userid 조회
-    path('user/idcheck/', views.UserIdCheckAPIView.as_view(), name='user-id-check')
+    path('user/idcheck/', views.UserIdCheckAPIView.as_view(), name='user-id-check'),
+
+    # 신고
+    path('user/report/<int:reported_id>/', views.UserReportCreateAPIView.as_view(), name='user-report')
 ]

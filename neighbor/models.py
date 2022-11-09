@@ -69,3 +69,9 @@ class OrderFrequency(models.Model):
     category11 = models.IntegerField(default=0)
     category12 = models.IntegerField(default=0)
     total = models.IntegerField(default=0)
+
+
+class Report(models.Model):
+    reporter_id = models.IntegerField()
+    reported_id = models.IntegerField()
+    content = models.CharField(max_length=500)

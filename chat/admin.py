@@ -1,5 +1,6 @@
 from django.contrib import admin
 from chat.models import Category, Room, ChatUser, Location
+from neighbor.models import Report
 
 
 class CategoryAdmin(admin.ModelAdmin):
@@ -22,4 +23,3 @@ admin.site.register(Category, CategoryAdmin)
 admin.site.register(Room, RoomAdmin)
 admin.site.register(ChatUser, ChatUserAdmin)
 admin.site.register(Location, LocationAdmin)
-
