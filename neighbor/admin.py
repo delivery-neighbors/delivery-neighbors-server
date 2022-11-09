@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from accounts.models import User
-from neighbor.models import Review, UserReview, Address, Search, ChatUserReview, UserReliability, OrderFrequency
+from neighbor.models import Review, UserReview, Address, Search, ChatUserReview, UserReliability, OrderFrequency, Report
 
 
 class UserReviewInline(admin.TabularInline):
@@ -46,6 +46,10 @@ class OrderFrequencyAdmin(admin.ModelAdmin):
                     'category7', 'category8', 'category9', 'category10', 'category11', 'category12', 'total']
 
 
+class ReportAdmin(admin.ModelAdmin):
+    list_display = ['id', 'reporter_id', 'reported_id', 'content']
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(UserReview, UserReviewAdmin)
@@ -54,3 +58,4 @@ admin.site.register(Search, SearchAdmin)
 admin.site.register(ChatUserReview, ChatUserReviewAdmin)
 admin.site.register(UserReliability, UserReliabilityAdmin)
 admin.site.register(OrderFrequency, OrderFrequencyAdmin)
+admin.site.register(Report, ReportAdmin)

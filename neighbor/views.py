@@ -13,11 +13,11 @@ from rest_framework.views import APIView
 
 from chat.models import ChatUser
 from config.authentication import CustomJWTAuthentication
-from neighbor.models import ChatUserReview, UserReliability
+from neighbor.models import ChatUserReview, UserReliability, Report
 from neighbor.serializers import *
 
-BASE_URL = "https://baedalius.com/"  # deploy version
-# BASE_URL = "http://localhost:8000/"  # local version
+# BASE_URL = "https://baedalius.com/"  # deploy version
+BASE_URL = "http://localhost:8000/"  # local version
 
 
 class UserUpdateAPIView(generics.UpdateAPIView):
@@ -87,8 +87,8 @@ class UserRetrieveAPIView(generics.RetrieveAPIView):
 
         top3_json = {}
         for i in range(len(top3category)):
-            top3_json[i+1] = {"id": top3category[i][0].id, "category_name": top3category[i][0].category_name,
-                              "category_img": str(top3category[i][0].category_background_img)}
+            top3_json[i + 1] = {"id": top3category[i][0].id, "category_name": top3category[i][0].category_name,
+                                "category_img": str(top3category[i][0].category_background_img)}
 
         user.top3category = top3_json.values()
 
@@ -280,7 +280,8 @@ def Top10_SearchedAPIView(request):
     sorted_file_lst = sorted(file_name_and_time_lst, key=lambda x: x[1], reverse=True)
     recent_file = sorted_file_lst[0]
     recent_file_name = recent_file[0]
-    return JsonResponse({"status": status.HTTP_200_OK, "wordcloud_url": f"{BASE_URL}media/images/wordcloud/{recent_file_name}"})
+    return JsonResponse(
+        {"status": status.HTTP_200_OK, "wordcloud_url": f"{BASE_URL}media/images/wordcloud/{recent_file_name}"})
 
 
 def toss_view(request):
@@ -294,3 +295,15 @@ class UserIdCheckAPIView(RetrieveAPIView):
         serializer = UserIdCheckSerializer(instance=user)
         return Response({"status": status.HTTP_200_OK, "data": serializer.data})
 
+
+class UserReportCreateAPIView(generics.CreateAPIView):
+    def post(self, request, reported_id):
+        user_id = CustomJWTAuthentication.authenticate(self, request)
+        content = request.data['content']
+
+        Report.objects.create(reporter_id=user_id,
+                              reported_id=reported_id,
+                              content=content
+                              )
+
+        return Response({"status": status.HTTP_201_CREATED})
