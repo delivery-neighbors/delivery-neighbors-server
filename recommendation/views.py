@@ -83,7 +83,7 @@ class SimilarUserListView(ListAPIView):
 
             for userId in cosine_sim_list:
                 user = User.objects.get(id=userId)
-
+                
                 room = list(Room.objects.filter(leader=user).filter(status="JOINED"))
                 print("room_list", room)
 
@@ -140,7 +140,7 @@ class SimilarUserListView(ListAPIView):
 
                 # 현재 채팅방 참여자 수
                 participant_num = ChatUser.objects.filter(room=room).count()
-
+                
                 room = room.__dict__
                 room['distance'] = int(distance)
                 room['participant_num'] = participant_num
