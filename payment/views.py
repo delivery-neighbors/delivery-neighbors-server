@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 from chat.models import ChatUser, Room
 from chat.serializers import ChatUserStatusSerializer
 from config.settings.base import TOSS_PAYMENTS_CONFIG
-from neighbor.models import UserReliability
+from neighbor.models import UserReliability, OrderFrequency
 from payment.models import Pay
 from payment.serializers import PaySerializer
 
@@ -139,6 +139,17 @@ class PayDoneUpdateAPIView(APIView):
         chat_user = ChatUser.objects.get(id=pk)
         chat_user.status = "PAY_DONE"
         chat_user.save()
+
+        user = chat_user.user
+        order_frequency = OrderFrequency.objects.get(user=user)
+        order_frequency_dict = order_frequency.__dict__
+
+        room = chat_user.room
+        room_category = f'category{room.category.id}'
+
+        order_frequency_dict[room_category] += 1
+        order_frequency_dict['total'] += 1
+        order_frequency.save()
 
         participated_room = chat_user.room
         chat_user_pay_done = ChatUser.objects.filter(room=participated_room, status='PAY_DONE')
