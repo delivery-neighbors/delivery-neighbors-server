@@ -19,4 +19,5 @@ urlpatterns = [
     path('deliveryneighbors/signout/', views.UserLogoutAPIView.as_view(), name='user-logout'),
     path('deliveryneighbors/resign/', views.UserResignAPIView.as_view(), name='user-resign'),
 
+    path('deliveryneighbors/reset_pwd/', views.PwdResetAPIView.as_view(), name='pwd-reset'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

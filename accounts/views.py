@@ -207,6 +207,19 @@ class UserResignAPIView(APIView):
         return Response({"status": status.HTTP_200_OK})
 
 
+class PwdResetAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def patch(self, request):
+        request_email = request.data['email']
+        request_password = request.data['password']
+
+        user = User.objects.get(email=request_email)
+        user.set_password(request_password)
+        user.save()
+
+        return Response({"status": status.HTTP_200_OK})
+
 # Code Request
 @csrf_exempt
 def kakao_login(request):
