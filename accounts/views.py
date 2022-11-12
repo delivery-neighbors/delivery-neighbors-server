@@ -29,8 +29,8 @@ from neighbor.models import UserReliability, OrderFrequency
 
 from config.settings.base import SOCIAL_OAUTH_CONFIG
 
-BASE_URL = "https://baedalius.com/"  # deploy version
-# BASE_URL = "http://localhost:8000/"  # local version
+# BASE_URL = "https://baedalius.com/"  # deploy version
+BASE_URL = "http://localhost:8000/"  # local version
 
 KAKAO_CLIENT_ID = SOCIAL_OAUTH_CONFIG['KAKAO_REST_API_KEY']
 KAKAO_REDIRECT_URI = f"{BASE_URL}{SOCIAL_OAUTH_CONFIG['KAKAO_REDIRECT_URI']}"
@@ -206,6 +206,19 @@ class UserResignAPIView(APIView):
 
         return Response({"status": status.HTTP_200_OK})
 
+
+class PwdResetAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def patch(self, request):
+        request_email = request.data['email']
+        request_password = request.data['password']
+
+        user = User.objects.get(email=request_email)
+        user.set_password(request_password)
+        user.save()
+
+        return Response({"status": status.HTTP_200_OK})
 
 # Code Request
 @csrf_exempt
