@@ -18,7 +18,7 @@ class ChattingUserSerializer(serializers.ModelSerializer):
 class MessageListSerializer(serializers.ModelSerializer):
     user_id = serializers.IntegerField(source='chat_user.user.id')
     username = serializers.CharField(source='chat_user.user.username')
-    user_avatar = serializers.CharField(source='chat_user.user.avatar')
+    user_avatar = serializers.CharField()
 
     class Meta:
         model = Message
