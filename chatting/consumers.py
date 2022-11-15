@@ -53,6 +53,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         chat_user_id = text_data_json['chat_user_id']
         message = text_data_json['message']
 
+        room = Room.objects.get(id=room_id)
+        chat_user = ChatUser.objects.get(id=chat_user_id)
+        message_after_filter = return_bad_words_index(message, mode=0)
+
+        Message.objects.create(
+            chat_user=chat_user,
+            room=room,
+            message=message_after_filter
+        )
+
         await self.channel_layer.group_send(
             self.group_name,
             {
@@ -70,7 +80,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         room_id = event['room_id']
         chat_user_id = event['chat_user_id']
         message = event['message']
-        message_after_filter = return_bad_words_index(message, mode=0)
 
         user = ChatUser.objects.get(id=chat_user_id).user
         user = user.__dict__
@@ -83,18 +92,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print(f"CHAT_MESSAGE >> avatar: {user['avatar']}")
         print(f"CHAT_MESSAGE >> serializers: {serializers.data}")
 
-        room = Room.objects.get(id=room_id)
-        chat_user = ChatUser.objects.get(id=chat_user_id)
-
-        Message.objects.create(
-            chat_user=chat_user,
-            room=room,
-            message=message_after_filter
-        )
-
         await self.send(text_data=json.dumps({
             'userInfo': serializers.data,
-            'message': message_after_filter
+            'message': message
         }, ensure_ascii=False
         ))
 
