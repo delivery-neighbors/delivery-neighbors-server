@@ -26,6 +26,12 @@ class MessageGetAPIView(ListCreateAPIView):
     def get(self, request, pk):
         room = Room.objects.get(id=pk)
         messages = Message.objects.filter(room=room)
+
+        for message in messages:
+            avatar = message.chat_user.user.avatar
+            message = message.__dict__
+            message['user_avatar'] = f"https://deliveryneighborsbucket.s3.ap-northeast-2.amazonaws.com/{avatar}"
+
         serializer = MessageListSerializer(instance=messages, many=True)
 
         return JsonResponse({"status": status.HTTP_200_OK, "rooms": serializer.data})
