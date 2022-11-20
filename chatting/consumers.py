@@ -114,6 +114,7 @@ async def push_chat_notification(room_id, chat_message, sender_id):
             body=f'{chat_message}'
         ),
         data={
+            'room_id': f'{room_id}',
             'title': f'{room_name}',
             'body': f'{chat_message}',
             'activity': 'waitingActivity'
